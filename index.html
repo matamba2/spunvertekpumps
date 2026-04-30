@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<!-- saved from url=(0077)file:///C:/Users/HP%20OMEN/Downloads/spunvertek-frontend-dashboard%20(1).html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SPUNVERTEK — Smart Irrigation Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link href="./SPUNVERTEK — Smart Irrigation Dashboard_files/css2" rel="stylesheet">
+
+<!-- Firebase -->
+<script src="./SPUNVERTEK — Smart Irrigation Dashboard_files/firebase-app-compat.js.download"></script>
+<script src="./SPUNVERTEK — Smart Irrigation Dashboard_files/firebase-auth-compat.js.download"></script>
+<script src="./SPUNVERTEK — Smart Irrigation Dashboard_files/firebase-database-compat.js.download"></script>
+
+<!-- Three.js -->
+<script src="./SPUNVERTEK — Smart Irrigation Dashboard_files/three.min.js.download"></script>
+
+<!-- Chart.js -->
+<script src="./SPUNVERTEK — Smart Irrigation Dashboard_files/chart.umd.min.js.download"></script>
+
+<!-- SheetJS -->
+<script src="./SPUNVERTEK — Smart Irrigation Dashboard_files/xlsx.full.min.js.download"></script>
+
+<style>
+:root {
+  --bg:      #040810;
+  --surface: #0b1220;
+  --card:    #101a2c;
+  --border:  #1a2d45;
+  --accent:  #00e5b0;
+  --accent2: #3b82f6;
+  --accent3: #f59e0b;
+  --danger:  #ef4444;
+  --success: #22c55e;
+  --text:    #e2e8f0;
+  --muted:   #475569;
+  --glow:    rgba(0,229,176,0.15);
+  --glow2:   rgba(59,130,246,0.15);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;overflow:hidden}
+::selection{background:var(--accent);color:#000}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+
+/* ─── CONNECTING OVERLAY ─── */
+#connectingOverlay{
+  position:fixed;inset:0;background:var(--bg);z-index:9999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+  background-image:
+    radial-gradient(ellipse at 20% 50%,rgba(0,229,176,0.06) 0%,transparent 60%),
+    radial-gradient(ellipse at 80% 20%,rgba(59,130,246,0.06) 0%,transparent 60%);
+}
+.conn-logo{font-family:'Orbitron',monospace;font-size:1.4em;font-weight:900;color:var(--accent);letter-spacing:5px}
+.conn-sub{font-family:'JetBrains Mono',monospace;font-size:0.72em;color:var(--muted);letter-spacing:2px}
+.conn-status{font-family:'JetBrains Mono',monospace;font-size:0.75em;color:var(--muted);display:flex;align-items:center;gap:8px}
+.conn-error{color:var(--danger);font-family:'JetBrains Mono',monospace;font-size:0.78em;text-align:center;max-width:380px;line-height:1.6}
+
+/* ─── APP SHELL ─── */
+#appContainer{
+  display:none;height:100vh;flex-direction:column;
+}
+#appContainer.visible{display:flex}
+
+/* ─── TOP BAR ─── */
+#topBar{
+  display:flex;align-items:center;gap:14px;
+  padding:0 24px;height:58px;flex-shrink:0;
+  background:var(--surface);border-bottom:1px solid var(--border);
+  position:relative;
+}
+#topBar::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+  opacity:0.2;
+}
+.topbar-brand{display:flex;flex-direction:column;justify-content:center;margin-right:8px}
+.topbar-logo{
+  font-family:'Orbitron',monospace;font-size:0.85em;font-weight:900;
+  color:var(--accent);letter-spacing:3px;line-height:1;
+}
+.topbar-sub{
+  font-family:'JetBrains Mono',monospace;font-size:0.6em;
+  color:var(--muted);letter-spacing:2px;margin-top:2px;
+}
+.topbar-divider{
+  width:1px;height:28px;background:var(--border);flex-shrink:0;
+}
+
+/* ─── DEVICE DROPDOWN ─── */
+.device-selector-wrap{
+  display:flex;align-items:center;gap:10px;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:8px;padding:7px 14px;
+  transition:border-color 0.2s;
+}
+.device-selector-wrap:focus-within{border-color:var(--accent)}
+.device-selector-label{
+  font-family:'JetBrains Mono',monospace;font-size:0.65em;
+  color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;
+  white-space:nowrap;
+}
+#deviceDropdown{
+  background:transparent;border:none;color:var(--text);
+  font-family:'JetBrains Mono',monospace;font-size:0.88em;font-weight:500;
+  outline:none;cursor:pointer;min-width:130px;max-width:200px;
+  -webkit-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23475569'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 0 center;
+  padding-right:14px;
+}
+#deviceDropdown option{background:var(--card);color:var(--text)}
+
+/* ─── STATUS BADGES ─── */
+.top-badge{
+  font-family:'JetBrains Mono',monospace;font-size:0.7em;
+  padding:4px 12px;border-radius:20px;letter-spacing:1px;flex-shrink:0;
+}
+.badge-online{background:rgba(34,197,94,0.15);color:var(--success);border:1px solid rgba(34,197,94,0.3)}
+.badge-offline{background:rgba(239,68,68,0.15);color:var(--danger);border:1px solid rgba(239,68,68,0.3)}
+.badge-connecting{background:rgba(245,158,11,0.15);color:var(--accent3);border:1px solid rgba(245,158,11,0.3)}
+
+.top-ip{font-family:'JetBrains Mono',monospace;font-size:0.68em;color:var(--muted)}
+
+/* ─── PUMP STATUS (read-only) ─── */
+.pump-status-wrap{
+  display:flex;align-items:center;gap:8px;margin-left:auto;
+}
+.pump-label{font-family:'JetBrains Mono',monospace;font-size:0.72em;color:var(--muted)}
+.pump-state-indicator{
+  display:flex;align-items:center;gap:6px;
+  font-family:'JetBrains Mono',monospace;font-size:0.78em;font-weight:700;
+  padding:6px 14px;border-radius:6px;letter-spacing:1px;
+}
+.pump-state-indicator.on{background:rgba(34,197,94,0.1);color:var(--success);border:1px solid rgba(34,197,94,0.3)}
+.pump-state-indicator.off{background:rgba(239,68,68,0.1);color:var(--danger);border:1px solid rgba(239,68,68,0.3)}
+.blink{animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* ─── TABS ─── */
+#tabBar{
+  display:flex;gap:0;border-bottom:1px solid var(--border);
+  background:var(--surface);flex-shrink:0;overflow-x:auto;
+}
+.tab{
+  padding:12px 22px;cursor:pointer;
+  font-family:'JetBrains Mono',monospace;font-size:0.75em;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--muted);
+  border-bottom:2px solid transparent;transition:all 0.15s;white-space:nowrap;
+  background:none;border-top:none;border-left:none;border-right:none;
+}
+.tab:hover{color:var(--text);background:var(--card)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* ─── TAB CONTENT ─── */
+#tabContent{flex:1;overflow-y:auto;padding:20px 24px}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+
+/* ─── NO DEVICE MSG ─── */
+.no-device{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:55vh;color:var(--muted);text-align:center;gap:12px;
+}
+.no-device-icon{font-size:3em}
+.no-device-text{font-family:'JetBrains Mono',monospace;font-size:0.82em;line-height:1.7}
+
+/* ─── CARDS ─── */
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:20px;transition:border-color 0.2s;
+}
+.card:hover{border-color:rgba(0,229,176,0.2)}
+.card-title{
+  font-family:'Orbitron',monospace;font-size:0.72em;font-weight:600;
+  color:var(--muted);letter-spacing:2px;text-transform:uppercase;
+  margin-bottom:16px;display:flex;align-items:center;gap:8px;
+}
+.card-title-accent{color:var(--accent)}
+
+/* ─── SENSOR GRID ─── */
+.sensor-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:12px;margin-bottom:20px;
+}
+.sensor-card{
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:16px;position:relative;overflow:hidden;transition:all 0.2s;cursor:default;
+}
+.sensor-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--c1,var(--accent)),transparent);
+}
+.sensor-card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.4)}
+.sensor-icon{font-size:1.4em;margin-bottom:8px}
+.sensor-label{font-family:'JetBrains Mono',monospace;font-size:0.65em;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px}
+.sensor-value{font-family:'Orbitron',monospace;font-size:1.5em;font-weight:700;line-height:1}
+.sensor-unit{font-family:'JetBrains Mono',monospace;font-size:0.65em;color:var(--muted);margin-top:3px}
+.sensor-bar{height:3px;background:var(--border);border-radius:2px;margin-top:10px;overflow:hidden}
+.sensor-bar-fill{height:100%;background:var(--c1,var(--accent));border-radius:2px;transition:width 0.8s ease}
+
+/* ─── 3D SCENE ─── */
+#sensor3dContainer{
+  width:100%;height:300px;border-radius:12px;
+  border:1px solid var(--border);overflow:hidden;
+  background:var(--bg);position:relative;margin-bottom:20px;
+}
+#sensor3dContainer canvas{display:block}
+.scene-overlay{
+  position:absolute;top:12px;left:12px;
+  font-family:'JetBrains Mono',monospace;font-size:0.65em;color:var(--muted);
+  letter-spacing:1.5px;pointer-events:none;
+}
+.scene-overlay span{color:var(--accent)}
+
+/* ─── CHARTS ─── */
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.chart-wrap{position:relative;height:200px}
+.chart-wrap canvas{max-height:200px}
+
+/* ─── TABLES ─── */
+.data-table{width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:0.8em}
+.data-table th{
+  padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);
+  color:var(--muted);font-size:0.75em;letter-spacing:1.5px;text-transform:uppercase;font-weight:400;
+}
+.data-table td{padding:12px 14px;border-bottom:1px solid rgba(26,45,69,0.5)}
+.data-table tr:hover td{background:rgba(0,229,176,0.03)}
+.data-table tr:last-child td{border-bottom:none}
+.val-green{color:var(--success)} .val-blue{color:var(--accent2)}
+.val-amber{color:var(--accent3)} .val-accent{color:var(--accent)}
+.val-red{color:var(--danger)}   .val-muted{color:var(--muted)}
+
+/* ─── ANALYTICS CARDS ─── */
+.analytics-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+  gap:12px;margin-bottom:20px;
+}
+.analytics-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px 16px;text-align:center}
+.analytics-card-label{font-family:'JetBrains Mono',monospace;font-size:0.65em;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px}
+.analytics-card-value{font-family:'Orbitron',monospace;font-size:1.6em;font-weight:700}
+.analytics-card-unit{font-family:'JetBrains Mono',monospace;font-size:0.7em;color:var(--muted);margin-top:4px}
+
+/* ─── EXPORT ─── */
+.export-section{margin-bottom:24px}
+.export-section-title{font-family:'JetBrains Mono',monospace;font-size:0.72em;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+.export-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.export-btn{
+  padding:12px 10px;border-radius:8px;border:1px solid var(--border);
+  background:var(--card);color:var(--text);cursor:pointer;
+  font-family:'JetBrains Mono',monospace;font-size:0.75em;letter-spacing:1px;
+  transition:all 0.2s;text-align:center;
+}
+.export-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--glow)}
+.export-btn .export-icon{font-size:1.4em;margin-bottom:6px;display:block}
+.export-custom{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-top:12px}
+.export-custom input[type="date"]{
+  padding:9px 12px;background:var(--surface);border:1px solid var(--border);
+  border-radius:6px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.82em;outline:none;
+}
+.export-custom input[type="date"]:focus{border-color:var(--accent)}
+.export-progress{font-family:'JetBrains Mono',monospace;font-size:0.75em;color:var(--muted);margin-top:8px;min-height:16px}
+
+/* ─── MISC ─── */
+.section-divider{border:none;border-top:1px solid var(--border);margin:20px 0}
+.mb-4{margin-bottom:16px}
+.mt-4{margin-top:16px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.tag{font-family:'JetBrains Mono',monospace;font-size:0.65em;padding:2px 8px;border-radius:4px;letter-spacing:1px}
+.tag-green{background:rgba(34,197,94,0.15);color:var(--success)}
+.tag-blue{background:rgba(59,130,246,0.15);color:var(--accent2)}
+.tag-amber{background:rgba(245,158,11,0.15);color:var(--accent3)}
+.loading-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);animation:ldot 1.2s infinite;margin-right:3px}
+.loading-dot:nth-child(2){animation-delay:0.2s}
+.loading-dot:nth-child(3){animation-delay:0.4s}
+@keyframes ldot{0%,80%,100%{opacity:0.3;transform:scale(0.8)}40%{opacity:1;transform:scale(1)}}
+.alert{padding:10px 14px;border-radius:7px;margin-bottom:12px;font-family:'JetBrains Mono',monospace;font-size:0.78em}
+.alert-info{background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);color:var(--accent2)}
+.btn-modal{
+  padding:11px 24px;border-radius:8px;border:none;cursor:pointer;
+  font-family:'JetBrains Mono',monospace;font-size:0.8em;font-weight:600;
+  letter-spacing:1px;transition:all 0.2s;
+}
+.btn-modal.primary{background:var(--accent2);color:#fff}
+.btn-modal.primary:hover{background:#60a5fa}
+
+/* ─── LOCATION STRIP ─── */
+#locationStrip{
+  display:none;align-items:center;gap:0;flex-shrink:0;
+  padding:0 24px;height:34px;
+  background:linear-gradient(90deg,rgba(0,229,176,0.04) 0%,rgba(59,130,246,0.03) 100%);
+  border-bottom:1px solid var(--border);
+  font-family:'JetBrains Mono',monospace;font-size:0.67em;
+  color:var(--muted);overflow:hidden;
+}
+#locationStrip.visible{display:flex}
+.fe-loc-item{
+  display:flex;align-items:center;gap:5px;
+  padding:0 14px 0 0;margin-right:14px;
+  border-right:1px solid var(--border);
+  white-space:nowrap;
+}
+.fe-loc-item:last-child{border-right:none;margin-right:0;padding-right:0}
+.fe-loc-label{
+  color:var(--muted);letter-spacing:1px;
+  text-transform:uppercase;font-size:0.88em;
+}
+.fe-loc-value{color:var(--text);font-weight:500}
+#feLocMapLink{
+  display:flex;align-items:center;gap:5px;
+  color:var(--accent);text-decoration:none;
+  cursor:pointer;transition:color 0.15s;white-space:nowrap;
+}
+#feLocMapLink:hover{color:#00ffca}
+#feLocCoords{font-size:0.92em}
+
+/* Responsive */
+@media(max-width:900px){
+  .chart-grid{grid-template-columns:1fr}
+  .grid-2{grid-template-columns:1fr}
+  #tabBar .tab{padding:10px 14px;font-size:0.7em}
+  .topbar-sub{display:none}
+  .fe-loc-item:nth-child(n+3){display:none}
+}
+@media(max-width:600px){
+  #topBar{padding:0 12px;gap:8px;height:54px}
+  #tabContent{padding:14px}
+  .sensor-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+  #locationStrip{padding:0 12px}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ CONNECTING OVERLAY ═══ -->
+<div id="connectingOverlay" style="display: none;">
+  <div class="conn-logo">SPUNVERTEK</div>
+  <div class="conn-sub">SMART IRRIGATION OS · v2.2</div>
+  <div class="conn-status">
+    <span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span>
+    <span id="connStatusText">Authenticating…</span>
+  </div>
+  <div class="conn-error" id="connError" style="display:none"></div>
+</div>
+
+<!-- ═══ MAIN APP ═══ -->
+<div id="appContainer" class="visible">
+
+  <!-- TOP BAR -->
+  <div id="topBar">
+
+    <!-- Brand -->
+    <div class="topbar-brand">
+      <div class="topbar-logo">SPUNVERTEK</div>
+      <div class="topbar-sub">SMART IRRIGATION OS</div>
+    </div>
+    <div class="topbar-divider"></div>
+
+    <!-- Device Selector -->
+    <div class="device-selector-wrap">
+      <span class="device-selector-label">Device</span>
+      <select id="deviceDropdown" onchange="onDropdownChange(this.value)">
+        <option value="">— Select —</option>
+      <option value="Pump1" data-meta="{&quot;apiKey&quot;:&quot;C3A3VWLHA2VGQBN3&quot;,&quot;country&quot;:&quot;Nigeria&quot;,&quot;createdAt&quot;:1777493932568,&quot;fbPath&quot;:&quot;/Pump1&quot;,&quot;firmware&quot;:&quot;v2.2&quot;,&quot;ip&quot;:&quot;&quot;,&quot;latitude&quot;:8.906547,&quot;lga&quot;:&quot;Sheshi-Bikun&quot;,&quot;longitude&quot;:6.115007,&quot;notes&quot;:&quot;Shehi-Bikun&quot;,&quot;pumpState&quot;:false,&quot;state&quot;:&quot;Niger&quot;,&quot;status&quot;:&quot;offline&quot;}">⚫ Pump1</option><option value="Pump2" data-meta="{&quot;apiKey&quot;:&quot;M0ZVEAUQ5HB0K4RC&quot;,&quot;country&quot;:&quot;Nigeria&quot;,&quot;createdAt&quot;:1777293158151,&quot;fbPath&quot;:&quot;/Pump2&quot;,&quot;firmware&quot;:&quot;v2.2&quot;,&quot;ip&quot;:&quot;&quot;,&quot;latitude&quot;:8.916715,&quot;lga&quot;:&quot;Lavun&quot;,&quot;longitude&quot;:6.087282,&quot;notes&quot;:&quot;Sheshi-Bikun&quot;,&quot;pumpState&quot;:true,&quot;state&quot;:&quot;Niger State&quot;,&quot;status&quot;:&quot;offline&quot;}">⚫ Pump2</option><option value="Pump3" data-meta="{&quot;apiKey&quot;:&quot;K9DVLX6HCQDE1XGO&quot;,&quot;country&quot;:&quot;Nigeria&quot;,&quot;createdAt&quot;:1777293492742,&quot;fbPath&quot;:&quot;/Pump3&quot;,&quot;firmware&quot;:&quot;v2.2&quot;,&quot;ip&quot;:&quot;&quot;,&quot;latitude&quot;:8.906508,&quot;lga&quot;:&quot;Lavun&quot;,&quot;longitude&quot;:6.115099,&quot;notes&quot;:&quot;Sheshi-Bikun&quot;,&quot;pumpState&quot;:true,&quot;state&quot;:&quot;Niger State&quot;,&quot;status&quot;:&quot;offline&quot;}">⚫ Pump3</option><option value="Pump4" data-meta="{&quot;apiKey&quot;:&quot;GRG5L1A3DDMHWG0J&quot;,&quot;country&quot;:&quot;Nigeria&quot;,&quot;createdAt&quot;:1777293704201,&quot;fbPath&quot;:&quot;/Pump4&quot;,&quot;firmware&quot;:&quot;v2.2&quot;,&quot;ip&quot;:&quot;&quot;,&quot;latitude&quot;:8.906508,&quot;lga&quot;:&quot;Lavun&quot;,&quot;longitude&quot;:6.115099,&quot;notes&quot;:&quot;Sheshi-Bikun&quot;,&quot;pumpState&quot;:true,&quot;state&quot;:&quot;Niger State&quot;,&quot;status&quot;:&quot;offline&quot;}">⚫ Pump4</option><option value="Pump5" data-meta="{&quot;apiKey&quot;:&quot;I7J7664DGX0YD3AQ&quot;,&quot;country&quot;:&quot;Nigeria&quot;,&quot;createdAt&quot;:1777218424341,&quot;fbPath&quot;:&quot;/Pump5&quot;,&quot;firmware&quot;:&quot;v2.2&quot;,&quot;ip&quot;:&quot;&quot;,&quot;latitude&quot;:8.906526,&quot;lga&quot;:&quot;Sheshi-Bikun&quot;,&quot;longitude&quot;:6.115006,&quot;notes&quot;:&quot;Sheshi-Bikun&quot;,&quot;pumpState&quot;:true,&quot;state&quot;:&quot;Lavun&quot;,&quot;status&quot;:&quot;offline&quot;}">⚫ Pump5</option><option value="Pump6" data-meta="{&quot;apiKey&quot;:&quot;FVNLAN3VPSLSDYXF&quot;,&quot;country&quot;:&quot;Nigeria&quot;,&quot;createdAt&quot;:1777293918115,&quot;fbPath&quot;:&quot;/Pump6&quot;,&quot;firmware&quot;:&quot;v2.2&quot;,&quot;ip&quot;:&quot;&quot;,&quot;latitude&quot;:8.906489,&quot;lga&quot;:&quot;Lavun&quot;,&quot;longitude&quot;:6.115082,&quot;notes&quot;:&quot;Sheshi-Bikun&quot;,&quot;pumpState&quot;:true,&quot;state&quot;:&quot;Niger State&quot;,&quot;status&quot;:&quot;offline&quot;}">⚫ Pump6</option><option value="Pump7" data-meta="{&quot;apiKey&quot;:&quot;5WDYCN74DCBBYXKO&quot;,&quot;country&quot;:&quot;Nigeria&quot;,&quot;createdAt&quot;:1777294137185,&quot;fbPath&quot;:&quot;/Pump7&quot;,&quot;firmware&quot;:&quot;v2.2&quot;,&quot;ip&quot;:&quot;&quot;,&quot;latitude&quot;:8.906489,&quot;lga&quot;:&quot;Lavun&quot;,&quot;longitude&quot;:6.115082,&quot;notes&quot;:&quot;Sheshi-Bikun&quot;,&quot;pumpState&quot;:true,&quot;state&quot;:&quot;Niger State&quot;,&quot;status&quot;:&quot;offline&quot;}">⚫ Pump7</option></select>
+    </div>
+
+    <!-- Online / Offline Badge -->
+    <span id="topBadge" class="top-badge badge-offline">OFFLINE</span>
+
+    <!-- Device IP -->
+    <span id="topIP" class="top-ip">—</span>
+
+    <!-- Pump Status (read-only indicator) -->
+    <div class="pump-status-wrap">
+      <span class="pump-label">PUMP:</span>
+      <div id="pumpIndicator" class="pump-state-indicator on">
+        <span id="pumpDot" class="blink">●</span>
+        <span id="pumpStateText">ON</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- LOCATION STRIP — populated from Firebase /devices/{id} -->
+  <div id="locationStrip" class="visible">
+    <div class="fe-loc-item">
+      <span>🌍</span>
+      <span class="fe-loc-label">Country</span>
+      <span class="fe-loc-value" id="fe-loc-country">Nigeria</span>
+    </div>
+    <div class="fe-loc-item">
+      <span>🏛️</span>
+      <span class="fe-loc-label">State</span>
+      <span class="fe-loc-value" id="fe-loc-state">Niger State</span>
+    </div>
+    <div class="fe-loc-item">
+      <span>🏘️</span>
+      <span class="fe-loc-label">LGA</span>
+      <span class="fe-loc-value" id="fe-loc-lga">Lavun</span>
+    </div>
+    <div class="fe-loc-item" style="margin-left:auto;border-right:none;padding-right:0">
+      <a id="feLocMapLink" href="https://www.google.com/maps?q=8.916715,6.087282&amp;z=15" target="_blank" rel="noopener noreferrer" title="Open device location in Google Maps" style="opacity: 1; pointer-events: auto;">
+        <span>📍</span>
+        <span id="feLocCoords">8.91671, 6.08728</span>
+        <span style="opacity:0.55;font-size:0.9em">↗ Maps</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- TAB BAR -->
+  <div id="tabBar">
+    <button class="tab active" onclick="switchTab(0,this)">Overview</button>
+    <button class="tab" onclick="switchTab(1,this)">Power Analytics</button>
+    <button class="tab" onclick="switchTab(2,this)">Energy Projections</button>
+    <button class="tab" onclick="switchTab(3,this)">History &amp; Export</button>
+  </div>
+
+  <!-- TAB CONTENT -->
+  <div id="tabContent">
+
+    <!-- ─── TAB 0: OVERVIEW ─── -->
+    <div class="tab-pane active" id="pane0">
+      <div id="noDeviceMsg" class="no-device" style="display: none;">
+        <div class="no-device-icon">📡</div>
+        <div class="no-device-text">Select a device from the dropdown above<br>to begin monitoring</div>
+      </div>
+      <div id="deviceContent" style="display: block;">
+        <!-- 3D Sensor Visualization -->
+        <div id="sensor3dContainer">
+          <div class="scene-overlay">3D SENSOR VISUALIZATION · <span id="scene3dDevice">Pump2</span></div>
+        <canvas width="1482" height="298" style="display: block; width: 1482px; height: 298px;"></canvas></div>
+        <!-- Sensor Cards -->
+        <div class="sensor-grid" id="sensorGrid">
+          <div class="sensor-card" style="--c1:#f87171"><span class="sensor-icon">🌡️</span><div class="sensor-label">Temperature</div><div class="sensor-value" id="sv-temp">43.0</div><div class="sensor-unit">°C</div><div class="sensor-bar"><div class="sensor-bar-fill" id="sb-temp" style="width: 71.6667%;"></div></div></div>
+          <div class="sensor-card" style="--c1:#60a5fa"><span class="sensor-icon">💧</span><div class="sensor-label">Humidity</div><div class="sensor-value" id="sv-hum">31.7</div><div class="sensor-unit">%</div><div class="sensor-bar"><div class="sensor-bar-fill" id="sb-hum" style="width: 31.7%;"></div></div></div>
+          <div class="sensor-card" style="--c1:#4ade80"><span class="sensor-icon">🌱</span><div class="sensor-label">Soil Moisture</div><div class="sensor-value" id="sv-soil">100</div><div class="sensor-unit">%</div><div class="sensor-bar"><div class="sensor-bar-fill" id="sb-soil" style="width: 100%;"></div></div></div>
+          <div class="sensor-card" style="--c1:#fbbf24"><span class="sensor-icon">⚡</span><div class="sensor-label">Solar Voltage</div><div class="sensor-value" id="sv-volt">241.42</div><div class="sensor-unit">V</div><div class="sensor-bar"><div class="sensor-bar-fill" id="sb-volt" style="width: 100%;"></div></div></div>
+          <div class="sensor-card" style="--c1:#e879f9"><span class="sensor-icon">🔌</span><div class="sensor-label">Current</div><div class="sensor-value" id="sv-curr">0.00</div><div class="sensor-unit">A</div><div class="sensor-bar"><div class="sensor-bar-fill" id="sb-curr" style="width:0%"></div></div></div>
+          <div class="sensor-card" style="--c1:#00e5b0"><span class="sensor-icon">⚙️</span><div class="sensor-label">Solar Power</div><div class="sensor-value" id="sv-power">0.00</div><div class="sensor-unit">W</div><div class="sensor-bar"><div class="sensor-bar-fill" id="sb-power" style="width:0%"></div></div></div>
+          <div class="sensor-card" style="--c1:#38bdf8"><span class="sensor-icon">🌊</span><div class="sensor-label">Flow Rate</div><div class="sensor-value" id="sv-flow">0.00</div><div class="sensor-unit">L/min</div><div class="sensor-bar"><div class="sensor-bar-fill" id="sb-flow" style="width:0%"></div></div></div>
+          <div class="sensor-card" style="--c1:#fb923c"><span class="sensor-icon">🔗</span><div class="sensor-label">Blockchain</div><div class="sensor-value" id="sv-block" style="font-size:1em">894fe00b01…</div><div class="sensor-unit">BLOCK #<span id="sv-blockn">8</span></div><div class="sensor-bar"><div class="sensor-bar-fill" id="sb-block" style="width: 44.4142%;"></div></div></div>
+        </div>
+        <!-- Charts -->
+        <div class="chart-grid">
+          <div class="card">
+            <div class="card-title">🌡️ Temperature &amp; Humidity</div>
+            <div class="chart-wrap"><canvas id="chartEnv" style="box-sizing: border-box; display: block; height: 200px; width: 692px;" width="865" height="250"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title">⚡ Solar Performance</div>
+            <div class="chart-wrap"><canvas id="chartSolar" style="box-sizing: border-box; display: block; height: 200px; width: 692px;" width="865" height="250"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title">🌱 Soil &amp; Flow</div>
+            <div class="chart-wrap"><canvas id="chartSoil" style="box-sizing: border-box; display: block; height: 200px; width: 692px;" width="865" height="250"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title">📊 Energy Accumulation (kWh)</div>
+            <div class="chart-wrap"><canvas id="chartEnergy" style="box-sizing: border-box; display: block; height: 200px; width: 692px;" width="865" height="250"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── TAB 1: POWER ANALYTICS ─── -->
+    <div class="tab-pane" id="pane1">
+      <div class="card mb-4">
+        <div class="card-title">⚡ <span class="card-title-accent">Power Analytics</span> — Live from Firebase</div>
+        <div class="analytics-grid">
+          <div class="analytics-card">
+            <div class="analytics-card-label">Current Power</div>
+            <div class="analytics-card-value val-accent" id="pa-current">0.00</div>
+            <div class="analytics-card-unit">Watts (W)</div>
+          </div>
+          <div class="analytics-card">
+            <div class="analytics-card-label">Session Average</div>
+            <div class="analytics-card-value val-blue" id="pa-avg">0.00</div>
+            <div class="analytics-card-unit">W (rolling avg)</div>
+          </div>
+          <div class="analytics-card">
+            <div class="analytics-card-label">Total Energy</div>
+            <div class="analytics-card-value val-green" id="pa-energy">0.000</div>
+            <div class="analytics-card-unit">Wh (session)</div>
+          </div>
+          <div class="analytics-card">
+            <div class="analytics-card-label">Peak Power</div>
+            <div class="analytics-card-value val-amber" id="pa-peak">0.00</div>
+            <div class="analytics-card-unit">Watts (W)</div>
+          </div>
+          <div class="analytics-card">
+            <div class="analytics-card-label">Session Uptime</div>
+            <div class="analytics-card-value" style="font-size:1.2em" id="pa-uptime">35:12:02</div>
+            <div class="analytics-card-unit">hh:mm:ss</div>
+          </div>
+          <div class="analytics-card">
+            <div class="analytics-card-label">Samples Logged</div>
+            <div class="analytics-card-value val-green" id="pa-samples">258</div>
+            <div class="analytics-card-unit">AI data points</div>
+          </div>
+        </div>
+        <hr class="section-divider">
+        <div class="card-title" style="margin-bottom:12px">📋 Session Power Log</div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th><th>Voltage (V)</th><th>Current (A)</th>
+              <th>Power (W)</th><th>Energy (kWh)</th><th>Peak (W)</th><th>Pump</th>
+            </tr>
+          </thead>
+          <tbody id="powerTableBody">
+            <tr>
+      <td class="val-muted">10:33:12 PM</td>
+      <td class="val-amber">241.42</td>
+      <td class="val-blue">0.00</td>
+      <td class="val-accent">0.00</td>
+      <td class="val-green">0.0000</td>
+      <td class="val-amber">0.00</td>
+      <td><span class="tag tag-green">ON</span></td></tr><tr>
+      <td class="val-muted">9:27:03 PM</td>
+      <td class="val-amber">181.80</td>
+      <td class="val-blue">0.00</td>
+      <td class="val-accent">0.00</td>
+      <td class="val-green">0.0000</td>
+      <td class="val-amber">0.00</td>
+      <td><span class="tag tag-green">ON</span></td></tr><tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px;font-size:0.85em">Select a device to view data…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ─── TAB 2: ENERGY PROJECTIONS ─── -->
+    <div class="tab-pane" id="pane2">
+      <div class="card mb-4">
+        <div class="card-title">🔮 <span class="card-title-accent">Energy Projections</span> — Based on Live Firebase Data</div>
+        <div class="alert alert-info mb-4">Projections are calculated from a rolling average of live power readings. Values update in real-time as new sensor data arrives.</div>
+        <table class="data-table" id="projTable">
+          <thead>
+            <tr>
+              <th>Period</th><th>Energy</th><th>Unit</th>
+              <th>Cost Estimate (₦)</th><th>CO₂ Saved (g)</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="val-accent">Hourly</td>
+              <td id="proj-1h">0.0</td><td>Wh</td>
+              <td id="proj-cost-1h">₦0.00</td><td id="proj-co2-1h">0.0 g</td>
+              <td><span class="tag tag-blue">LIVE</span></td>
+            </tr>
+            <tr>
+              <td class="val-blue">Daily (24h)</td>
+              <td id="proj-24h">0.0</td><td>Wh</td>
+              <td id="proj-cost-24h">₦0.00</td><td id="proj-co2-24h">0.0 g</td>
+              <td><span class="tag tag-blue">PROJECTED</span></td>
+            </tr>
+            <tr>
+              <td class="val-green">Monthly (30d)</td>
+              <td id="proj-30d">0.000</td><td>kWh</td>
+              <td id="proj-cost-30d">₦0.00</td><td id="proj-co2-30d">0.0 g</td>
+              <td><span class="tag tag-green">ESTIMATED</span></td>
+            </tr>
+            <tr>
+              <td class="val-amber">Yearly (365d)</td>
+              <td id="proj-365d">0.00</td><td>kWh</td>
+              <td id="proj-cost-365d">₦0.00</td><td id="proj-co2-365d">0.0 g</td>
+              <td><span class="tag tag-amber">FORECAST</span></td>
+            </tr>
+            <tr>
+              <td class="val-red">5-Year</td>
+              <td id="proj-5y">0.0000</td><td>MWh</td>
+              <td id="proj-cost-5y">₦0.00</td><td id="proj-co2-5y">0.0 g</td>
+              <td><span class="tag" style="background:rgba(239,68,68,0.15);color:var(--danger)">LONG-TERM</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <hr class="section-divider">
+        <div class="card-title" style="margin-bottom:12px">📉 Energy Projection Chart</div>
+        <div style="height:240px"><canvas id="chartProjection" height="0" style="display: block; box-sizing: border-box; height: 0px; width: 0px;" width="0"></canvas></div>
+      </div>
+    </div>
+
+    <!-- ─── TAB 3: HISTORY & EXPORT ─── -->
+    <div class="tab-pane" id="pane3">
+      <div class="card mb-4">
+        <div class="card-title">📊 <span class="card-title-accent">Data Export</span> — Firebase History → Excel</div>
+        <div class="alert alert-info mb-4">All data is downloaded directly from Firebase <code style="font-family:&#39;JetBrains Mono&#39;,monospace">/history</code> node. Large date ranges may take a moment to process.</div>
+
+        <div class="export-section">
+          <div class="export-section-title">Quick Export</div>
+          <div class="export-grid">
+            <button class="export-btn" onclick="exportData(&#39;today&#39;)"><span class="export-icon">📅</span>Today</button>
+            <button class="export-btn" onclick="exportData(&#39;week&#39;)"><span class="export-icon">📆</span>This Week</button>
+            <button class="export-btn" onclick="exportData(&#39;month&#39;)"><span class="export-icon">🗓️</span>This Month</button>
+            <button class="export-btn" onclick="exportData(&#39;3months&#39;)"><span class="export-icon">📋</span>3 Months</button>
+            <button class="export-btn" onclick="exportData(&#39;6months&#39;)"><span class="export-icon">📁</span>6 Months</button>
+            <button class="export-btn" onclick="exportData(&#39;year&#39;)"><span class="export-icon">📊</span>This Year</button>
+            <button class="export-btn" onclick="exportData(&#39;2years&#39;)"><span class="export-icon">🗃️</span>2 Years</button>
+            <button class="export-btn" onclick="exportData(&#39;5years&#39;)"><span class="export-icon">🏦</span>5 Years</button>
+          </div>
+        </div>
+
+        <div class="export-section">
+          <div class="export-section-title">Custom Date Range</div>
+          <div class="export-custom">
+            <div>
+              <label style="font-family:&#39;JetBrains Mono&#39;,monospace;font-size:0.72em;color:var(--muted);letter-spacing:1.5px;display:block;margin-bottom:4px">FROM</label>
+              <input type="date" id="exportFrom">
+            </div>
+            <div>
+              <label style="font-family:&#39;JetBrains Mono&#39;,monospace;font-size:0.72em;color:var(--muted);letter-spacing:1.5px;display:block;margin-bottom:4px">TO</label>
+              <input type="date" id="exportTo">
+            </div>
+            <button class="btn-modal primary" onclick="exportData(&#39;custom&#39;)" style="padding:10px 20px">⬇ Export Custom</button>
+          </div>
+          <div class="export-progress" id="exportProgress"></div>
+        </div>
+
+        <hr class="section-divider">
+        <div class="card-title" style="margin-bottom:12px">📜 Recent History (last 50 entries)</div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th><th>Temp (°C)</th><th>Humidity (%)</th><th>Soil (%)</th>
+              <th>Voltage (V)</th><th>Current (A)</th><th>Power (W)</th>
+              <th>Flow (L/m)</th><th>Energy (kWh)</th><th>Pump</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody">
+    <tr>
+      <td style="color:var(--muted)">4/29/2026, 5:53:42 PM</td>
+      <td class="val-red">43.1</td>
+      <td class="val-blue">31.5</td>
+      <td class="val-green">100</td>
+      <td class="val-amber">269.41</td>
+      <td class="val-blue">0.00</td>
+      <td class="val-accent">0.00</td>
+      <td class="val-green">0.00</td>
+      <td class="val-accent">0.0000</td>
+      <td><span class="tag tag-green">ON</span></td>
+    </tr></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /tabContent -->
+</div><!-- /appContainer -->
+
+<!-- ═══ JAVASCRIPT ═══ -->
+<script>
+// ─────────────────────────────────────────────
+// FIREBASE CONFIG
+// ─────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey:            "AIzaSyAyi13Nuodo_BIW2_GbGjvxS6piVEgkJL4",
+  authDomain:        "spunvertek-iot.firebaseapp.com",
+  databaseURL:       "https://spunvertek-iot-default-rtdb.firebaseio.com",
+  projectId:         "spunvertek-iot",
+  storageBucket:     "spunvertek-iot.appspot.com",
+  messagingSenderId: "0",
+  appId:             "1"
+};
+
+const app  = firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.database();
+
+// ─────────────────────────────────────────────
+// TIMESTAMP HELPER
+// ─────────────────────────────────────────────
+function getRecordTimestamp(record, key) {
+  if (record && record.timestamp !== undefined) {
+    const ts = Number(record.timestamp);
+    if (!isNaN(ts) && ts > 1000000000) return ts;
+  }
+  if (key && key.startsWith('-')) {
+    const PUSH_CHARS = "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz";
+    let timestamp = 0;
+    for (let i = 0; i < 8; i++) {
+      timestamp = timestamp * 64 + PUSH_CHARS.indexOf(key.charAt(i));
+    }
+    return timestamp;
+  }
+  return Date.now();
+}
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let currentDevice      = null;
+let sensorListener     = null;
+let sensorListenerFlat = null;
+let historyListener    = null;
+let deviceMetaListener = null;
+let onlineCheckInterval= null;
+let charts             = {};
+let historyData        = [];
+let powerSamples       = [];
+let scene3d, camera3d, renderer3d, pods3d = [], animFrameId;
+let projectionChart    = null;
+let sessionStartMs     = Date.now();
+let avgPower           = 0;
+let deviceMeta         = {};
+let lastSeenMs         = 0;
+
+// ─────────────────────────────────────────────
+// AUTH — anonymous sign-in for read-only access
+// ─────────────────────────────────────────────
+function setConnStatus(text) {
+  const el = document.getElementById('connStatusText');
+  if (el) el.textContent = text;
+}
+
+auth.onAuthStateChanged(user => {
+  if (user) {
+    document.getElementById('connectingOverlay').style.display = 'none';
+    document.getElementById('appContainer').classList.add('visible');
+    loadDeviceDropdown();
+    // Set default export dates
+    const today = new Date();
+    const el = document.getElementById('exportTo');
+    if (el) el.value = today.toISOString().split('T')[0];
+    const monthAgo = new Date(today - 30 * 864e5);
+    const el2 = document.getElementById('exportFrom');
+    if (el2) el2.value = monthAgo.toISOString().split('T')[0];
+    initCharts();
+  } else {
+    setConnStatus('Authenticating…');
+    auth.signInAnonymously().catch(err => {
+      const errEl = document.getElementById('connError');
+      errEl.style.display = 'block';
+      errEl.textContent = `Connection failed: ${err.message}\n\nPlease enable Anonymous Authentication in Firebase Console → Authentication → Sign-in method.`;
+      setConnStatus('Authentication failed.');
+    });
+  }
+});
+
+// ─────────────────────────────────────────────
+// DEVICE DROPDOWN — live updates from Firebase
+// ─────────────────────────────────────────────
+function loadDeviceDropdown() {
+  const sel = document.getElementById('deviceDropdown');
+  db.ref('/devices').on('value', snap => {
+    const prev = sel.value;
+    // Clear all except placeholder
+    while (sel.options.length > 1) sel.remove(1);
+
+    if (!snap.exists()) return;
+
+    snap.forEach(child => {
+      const d   = child.val();
+      const id  = child.key;
+      const ts  = d.lastSeen || d.updatedAt || 0;
+      const dot = (Date.now() - ts) < 300000 ? '🟢' : '⚫';
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = `${dot} ${id}${d.ip ? '  ·  ' + d.ip : ''}`;
+      opt.dataset.meta = JSON.stringify(d);
+      sel.appendChild(opt);
+    });
+
+    // Re-select previous device if still in list
+    if (prev && [...sel.options].some(o => o.value === prev)) {
+      sel.value = prev;
+    }
+  });
+}
+
+function onDropdownChange(id) {
+  if (!id) {
+    currentDevice = null;
+    detachListeners();
+    document.getElementById('noDeviceMsg').style.display = 'flex';
+    document.getElementById('deviceContent').style.display = 'none';
+    document.getElementById('topBadge').textContent = 'OFFLINE';
+    document.getElementById('topBadge').className = 'top-badge badge-offline';
+    document.getElementById('topIP').textContent = '—';
+    document.getElementById('locationStrip').classList.remove('visible');
+    updatePumpUI(false);
+    return;
+  }
+  const sel  = document.getElementById('deviceDropdown');
+  const opt  = [...sel.options].find(o => o.value === id);
+  const meta = opt ? JSON.parse(opt.dataset.meta || '{}') : {};
+  selectDevice(id, meta);
+}
+
+function selectDevice(id, meta) {
+  currentDevice = id;
+  deviceMeta    = meta || {};
+  document.getElementById('scene3dDevice').textContent = id;
+  document.getElementById('noDeviceMsg').style.display  = 'none';
+  document.getElementById('deviceContent').style.display = 'block';
+  document.getElementById('topIP').textContent = meta?.ip || '—';
+  updateLocationStrip(meta);
+  detachListeners();
+  attachSensorListener(id);
+  attachHistoryListener(id);
+  attachDeviceMetaListener(id);
+  init3DScene();
+}
+
+// ─────────────────────────────────────────────
+// DETACH LISTENERS
+// ─────────────────────────────────────────────
+function detachListeners() {
+  if (sensorListener)     { db.ref(sensorListener).off();     sensorListener = null; }
+  if (sensorListenerFlat) { db.ref(sensorListenerFlat).off(); sensorListenerFlat = null; }
+  if (historyListener)    { db.ref(historyListener).off();    historyListener = null; }
+  if (deviceMetaListener) { db.ref(deviceMetaListener).off(); deviceMetaListener = null; }
+  if (onlineCheckInterval){ clearInterval(onlineCheckInterval); onlineCheckInterval = null; }
+  lastSeenMs   = 0;
+  historyData  = [];
+  powerSamples = [];
+}
+
+// ─────────────────────────────────────────────
+// SENSOR LISTENER (nested + flat fallback)
+// ─────────────────────────────────────────────
+function attachSensorListener(id) {
+  const fbPath     = (deviceMeta.fbPath || `/${id}`).replace(/\/+$/, '');
+  const sensorsPath = `${fbPath}/sensors`;
+  const flatPath    = fbPath;
+
+  // Primary: nested sensors
+  sensorListener = sensorsPath;
+  db.ref(sensorsPath).on('value', snap => {
+    if (!snap.exists()) return;
+    const d = snap.val();
+    lastSeenMs = (d.timestamp && d.timestamp > 1e9) ? d.timestamp : Date.now();
+    updateOnlineBadge();
+    updateSensorUI(d);
+    updatePowerAnalytics(d);
+    updateProjections(d.power || 0);
+    update3DPods(d);
+  }, err => console.error('[Spunvertek] Sensor listener error:', err));
+
+  // Fallback: flat root path
+  sensorListenerFlat = flatPath;
+  db.ref(flatPath).on('value', snap => {
+    if (!snap.exists()) return;
+    const d = snap.val();
+    if (d.temperature !== undefined || d.voltage !== undefined || d.humidity !== undefined) {
+      lastSeenMs = (d.timestamp && d.timestamp > 1e9) ? d.timestamp : Date.now();
+      updateOnlineBadge();
+      updateSensorUI(d);
+      updatePowerAnalytics(d);
+      updateProjections(d.power || 0);
+      update3DPods(d);
+    }
+  }, err => console.error('[Spunvertek] Flat listener error:', err));
+}
+
+// ─────────────────────────────────────────────
+// ONLINE / OFFLINE BADGE
+// ─────────────────────────────────────────────
+function updateOnlineBadge() {
+  const online = lastSeenMs > 0 && (Date.now() - lastSeenMs) < 300000;
+  const badge  = document.getElementById('topBadge');
+  if (badge) {
+    badge.textContent = online ? 'ONLINE' : 'OFFLINE';
+    badge.className   = 'top-badge ' + (online ? 'badge-online' : 'badge-offline');
+  }
+}
+
+// ─────────────────────────────────────────────
+// DEVICE META LISTENER
+// ─────────────────────────────────────────────
+function attachDeviceMetaListener(id) {
+  const path = `/devices/${id}`;
+  deviceMetaListener = path;
+  db.ref(path).on('value', snap => {
+    if (!snap.exists()) return;
+    const d = snap.val();
+    lastSeenMs = d.lastSeen || d.timestamp || d.updatedAt || 0;
+    updateOnlineBadge();
+    document.getElementById('topIP').textContent = d.ip || '—';
+    const pump = d.pumpState !== undefined ? d.pumpState : false;
+    updatePumpUI(pump);
+    // Refresh dropdown dot colours
+    refreshDropdownDots();
+    // Refresh location strip from latest Firebase data
+    updateLocationStrip(d);
+  });
+  if (onlineCheckInterval) clearInterval(onlineCheckInterval);
+  onlineCheckInterval = setInterval(updateOnlineBadge, 30000);
+}
+
+function refreshDropdownDots() {
+  const sel = document.getElementById('deviceDropdown');
+  [...sel.options].forEach(opt => {
+    if (!opt.value) return;
+    try {
+      const meta = JSON.parse(opt.dataset.meta || '{}');
+      const ts   = meta.lastSeen || meta.updatedAt || 0;
+      const dot  = (Date.now() - ts) < 300000 ? '🟢' : '⚫';
+      const id   = opt.value;
+      const ip   = meta.ip ? '  ·  ' + meta.ip : '';
+      opt.textContent = `${dot} ${id}${ip}`;
+    } catch(_) {}
+  });
+}
+
+// ─────────────────────────────────────────────
+// LOCATION STRIP — reads country/state/lga/latitude/longitude from Firebase
+// ─────────────────────────────────────────────
+function updateLocationStrip(meta) {
+  const strip   = document.getElementById('locationStrip');
+  const country = (meta && meta.country)   || '';
+  const state   = (meta && meta.state)     || '';
+  const lga     = (meta && meta.lga)       || '';
+  const lat     = (meta && meta.latitude  !== undefined) ? meta.latitude  : null;
+  const lng     = (meta && meta.longitude !== undefined) ? meta.longitude : null;
+
+  const hasAny  = country || state || lga || (lat !== null && lng !== null);
+  if (hasAny) { strip.classList.add('visible'); }
+  else        { strip.classList.remove('visible'); return; }
+
+  document.getElementById('fe-loc-country').textContent = country || '—';
+  document.getElementById('fe-loc-state').textContent   = state   || '—';
+  document.getElementById('fe-loc-lga').textContent     = lga     || '—';
+
+  const coordsEl  = document.getElementById('feLocCoords');
+  const mapLink   = document.getElementById('feLocMapLink');
+  const hasCoords = lat !== null && lng !== null && !isNaN(lat) && !isNaN(lng);
+  if (hasCoords) {
+    const latStr = Number(lat).toFixed(5);
+    const lngStr = Number(lng).toFixed(5);
+    coordsEl.textContent = `${latStr}, ${lngStr}`;
+    const mapsUrl = `https://www.google.com/maps?q=${encodeURIComponent(lat)},${encodeURIComponent(lng)}&z=15`;
+    mapLink.href            = mapsUrl;
+    mapLink.style.opacity   = '1';
+    mapLink.style.pointerEvents = 'auto';
+  } else {
+    coordsEl.textContent    = 'No GPS data';
+    mapLink.href            = '#';
+    mapLink.style.opacity   = '0.4';
+    mapLink.style.pointerEvents = 'none';
+  }
+}
+
+// ─────────────────────────────────────────────
+// SENSOR UI UPDATE
+// ─────────────────────────────────────────────
+function updateSensorUI(d) {
+  const set = (id, val, dec=1) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = (val !== undefined && val !== null) ? Number(val).toFixed(dec) : '—';
+  };
+  const setBar = (id, pct) => {
+    const el = document.getElementById(id);
+    if (el) el.style.width = Math.min(100, Math.max(0, pct||0)) + '%';
+  };
+  set('sv-temp',  d.temperature,  1); setBar('sb-temp',  (d.temperature/60)*100);
+  set('sv-hum',   d.humidity,     1); setBar('sb-hum',   d.humidity);
+  set('sv-soil',  d.moisture,     0); setBar('sb-soil',  d.moisture);
+  set('sv-volt',  d.voltage,      2); setBar('sb-volt',  (d.voltage/30)*100);
+  set('sv-curr',  d.current,      2); setBar('sb-curr',  (d.current/10)*100);
+  set('sv-power', d.power,        2); setBar('sb-power', (d.power/2200)*100);
+  set('sv-flow',  d.flowRate,     2); setBar('sb-flow',  (d.flowRate/1100)*100);
+  const blk = d.blockHash || '';
+  const bel  = document.getElementById('sv-block');
+  if (bel) bel.textContent = blk.substring(0,10) + (blk.length > 10 ? '…' : '');
+  const bnel = document.getElementById('sv-blockn');
+  if (bnel) bnel.textContent = d.blockCount || 0;
+  setBar('sb-block', 50 + Math.sin(Date.now()/3000)*50);
+  if (d.pumpState !== undefined) updatePumpUI(d.pumpState);
+  const now = new Date().toLocaleTimeString();
+  pushChartData('chartEnv',    [d.temperature, d.humidity], now);
+  pushChartData('chartSolar',  [d.voltage, d.current, d.power], now);
+  pushChartData('chartSoil',   [d.moisture, d.flowRate], now);
+  pushChartData('chartEnergy', [(d.energyKwh||0)*1000], now);
+  if (d.power !== undefined) {
+    powerSamples.push(d.power);
+    if (powerSamples.length > 40) powerSamples.shift();
+    avgPower = powerSamples.reduce((a,b) => a+b, 0) / powerSamples.length;
+  }
+}
+
+// ─────────────────────────────────────────────
+// PUMP UI (read-only indicator)
+// ─────────────────────────────────────────────
+function updatePumpUI(state) {
+  const ind = document.getElementById('pumpIndicator');
+  const txt = document.getElementById('pumpStateText');
+  if (!ind || !txt) return;
+  ind.className  = 'pump-state-indicator ' + (state ? 'on' : 'off');
+  txt.textContent = state ? 'ON' : 'OFF';
+}
+
+// ─────────────────────────────────────────────
+// POWER ANALYTICS
+// ─────────────────────────────────────────────
+function updatePowerAnalytics(d) {
+  const set = (id, val, dec=2) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val !== undefined ? Number(val).toFixed(dec) : '—';
+  };
+  set('pa-current', d.power,  2);
+  set('pa-avg',     avgPower, 2);
+  set('pa-energy',  (d.energyKwh||0)*1000, 3);
+  set('pa-peak',    d.peakPowerW, 2);
+  set('pa-samples', d.aiSamples,  0);
+  const ms = Date.now() - sessionStartMs;
+  const h  = Math.floor(ms/3600000).toString().padStart(2,'0');
+  const m  = Math.floor((ms%3600000)/60000).toString().padStart(2,'0');
+  const s  = Math.floor((ms%60000)/1000).toString().padStart(2,'0');
+  const el = document.getElementById('pa-uptime');
+  if (el) el.textContent = `${h}:${m}:${s}`;
+  const tbody = document.getElementById('powerTableBody');
+  if (tbody && d.power !== undefined) {
+    const row = tbody.insertRow(0);
+    row.innerHTML = `
+      <td class="val-muted">${new Date().toLocaleTimeString()}</td>
+      <td class="val-amber">${Number(d.voltage||0).toFixed(2)}</td>
+      <td class="val-blue">${Number(d.current||0).toFixed(2)}</td>
+      <td class="val-accent">${Number(d.power||0).toFixed(2)}</td>
+      <td class="val-green">${Number(d.energyKwh||0).toFixed(4)}</td>
+      <td class="val-amber">${Number(d.peakPowerW||0).toFixed(2)}</td>
+      <td>${d.pumpState
+        ? '<span class="tag tag-green">ON</span>'
+        : '<span class="tag" style="background:rgba(239,68,68,0.15);color:var(--danger)">OFF</span>'}</td>`;
+    while (tbody.rows.length > 50) tbody.deleteRow(tbody.rows.length - 1);
+  }
+}
+
+// ─────────────────────────────────────────────
+// PROJECTIONS (hardcoded defaults: ₦225/kWh, 233g CO₂/kWh, 24h/day)
+// ─────────────────────────────────────────────
+function updateProjections(powerW) {
+  const rate  = 225;
+  const co2   = 233;
+  const hours = 24;
+  const avgW  = avgPower || powerW || 0;
+
+  const h1Wh   = (avgW * 1).toFixed(1);
+  const d24Wh  = (avgW * hours).toFixed(1);
+  const m30Kwh = (avgW * hours * 30 / 1000).toFixed(3);
+  const y365   = (avgW * hours * 365 / 1000).toFixed(2);
+  const y5Mwh  = (avgW * hours * 365 * 5 / 1e6).toFixed(4);
+
+  const s = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  s('proj-1h',     h1Wh);      s('proj-cost-1h',  `₦${(h1Wh/1000*rate).toFixed(2)}`);   s('proj-co2-1h',  `${(h1Wh/1000*co2).toFixed(1)} g`);
+  s('proj-24h',    d24Wh);     s('proj-cost-24h', `₦${(d24Wh/1000*rate).toFixed(2)}`);  s('proj-co2-24h', `${(d24Wh/1000*co2).toFixed(1)} g`);
+  s('proj-30d',    m30Kwh);    s('proj-cost-30d', `₦${(m30Kwh*rate).toFixed(2)}`);       s('proj-co2-30d', `${(m30Kwh*co2).toFixed(1)} g`);
+  s('proj-365d',   y365);      s('proj-cost-365d',`₦${(y365*rate).toFixed(2)}`);         s('proj-co2-365d',`${(y365*co2).toFixed(1)} g`);
+  s('proj-5y',     y5Mwh);     s('proj-cost-5y',  `₦${(y5Mwh*1000*rate).toFixed(2)}`);  s('proj-co2-5y',  `${(y5Mwh*1000*co2).toFixed(1)} g`);
+
+  updateProjectionChart([+h1Wh, +d24Wh, m30Kwh*1000, y365*1000, y5Mwh*1e6]);
+}
+
+function updateProjectionChart(vals) {
+  if (projectionChart) {
+    projectionChart.data.datasets[0].data = vals;
+    projectionChart.update('none');
+    return;
+  }
+  const ctx = document.getElementById('chartProjection');
+  if (!ctx) return;
+  projectionChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['1 Hour (Wh)', '24 Hours (Wh)', '30 Days (Wh)', '1 Year (Wh)', '5 Years (Wh)'],
+      datasets: [{
+        label: 'Energy (Wh)',
+        data: vals,
+        backgroundColor: ['rgba(0,229,176,0.6)','rgba(59,130,246,0.6)','rgba(245,158,11,0.6)','rgba(239,68,68,0.6)','rgba(168,85,247,0.6)'],
+        borderColor:     ['var(--accent)','var(--accent2)','var(--accent3)','var(--danger)','#a855f7'],
+        borderWidth: 1, borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color:'rgba(255,255,255,0.04)' }, ticks: { color:'#64748b', font:{ family:'JetBrains Mono', size:10 } } },
+        y: { grid: { color:'rgba(255,255,255,0.04)' }, ticks: { color:'#64748b', font:{ family:'JetBrains Mono', size:10 } }, type:'logarithmic' }
+      }
+    }
+  });
+}
+
+// ─────────────────────────────────────────────
+// HISTORY LISTENER
+// ─────────────────────────────────────────────
+function attachHistoryListener(id) {
+  const path = `/${id}/history`;
+  historyListener = path;
+  db.ref(path).limitToLast(50).on('value', snap => {
+    historyData = [];
+    if (!snap.exists()) return;
+    snap.forEach(child => historyData.push({ key: child.key, ...child.val() }));
+    historyData.reverse();
+    renderHistoryTable();
+  });
+}
+
+function renderHistoryTable() {
+  const tbody = document.getElementById('historyTableBody');
+  if (!tbody) return;
+  if (!historyData.length) {
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:30px">No history yet</td></tr>';
+    return;
+  }
+  tbody.innerHTML = historyData.map(d => `
+    <tr>
+      <td style="color:var(--muted)">${new Date(getRecordTimestamp(d, d.key)).toLocaleString()}</td>
+      <td class="val-red">${Number(d.temperature||0).toFixed(1)}</td>
+      <td class="val-blue">${Number(d.humidity||0).toFixed(1)}</td>
+      <td class="val-green">${Number(d.moisture||0).toFixed(0)}</td>
+      <td class="val-amber">${Number(d.voltage||0).toFixed(2)}</td>
+      <td class="val-blue">${Number(d.current||0).toFixed(2)}</td>
+      <td class="val-accent">${Number(d.power||0).toFixed(2)}</td>
+      <td class="val-green">${Number(d.flowRate||0).toFixed(2)}</td>
+      <td class="val-accent">${Number(d.energyKwh||0).toFixed(4)}</td>
+      <td>${d.pumpState
+        ? '<span class="tag tag-green">ON</span>'
+        : '<span class="tag" style="background:rgba(239,68,68,0.15);color:var(--danger)">OFF</span>'}</td>
+    </tr>`).join('');
+}
+
+// ─────────────────────────────────────────────
+// EXPORT
+// ─────────────────────────────────────────────
+async function exportData(period) {
+  if (!currentDevice) { alert('Select a device first'); return; }
+  const progress = document.getElementById('exportProgress');
+  progress.textContent = 'Fetching data from Firebase…';
+  const now = Date.now();
+  let startMs = now - 30*864e5, endMs = now;
+  switch(period) {
+    case 'today':   startMs = new Date().setHours(0,0,0,0); break;
+    case 'week':    startMs = now - 7*864e5;   break;
+    case 'month':   startMs = now - 30*864e5;  break;
+    case '3months': startMs = now - 90*864e5;  break;
+    case '6months': startMs = now - 180*864e5; break;
+    case 'year':    startMs = now - 365*864e5; break;
+    case '2years':  startMs = now - 730*864e5; break;
+    case '5years':  startMs = now - 1825*864e5;break;
+    case 'custom': {
+      const from = document.getElementById('exportFrom').value;
+      const to   = document.getElementById('exportTo').value;
+      if (!from || !to) { progress.textContent = '⚠ Select both dates'; return; }
+      startMs = new Date(from).getTime();
+      endMs   = new Date(to).getTime() + 864e5 - 1;
+      break;
+    }
+    default: startMs = now - 30*864e5;
+  }
+  try {
+    const snap = await db.ref(`/${currentDevice}/history`).once('value');
+    const rows = [];
+    snap.forEach(child => {
+      const rec = { key: child.key, ...child.val() };
+      const ts  = getRecordTimestamp(rec, rec.key);
+      if (ts >= startMs && ts <= endMs) rows.push(rec);
+    });
+    progress.textContent = `Found ${rows.length} records. Building Excel file…`;
+    if (!rows.length) { progress.textContent = '⚠ No data found for this period.'; return; }
+
+    const wb = XLSX.utils.book_new();
+
+    const rawData = rows.map(d => ({
+      'Timestamp':        new Date(getRecordTimestamp(d, d.key)).toLocaleString(),
+      'Temperature (°C)': Number(d.temperature||0).toFixed(1),
+      'Humidity (%)':     Number(d.humidity||0).toFixed(1),
+      'Soil Moisture (%)':Number(d.moisture||0).toFixed(0),
+      'Voltage (V)':      Number(d.voltage||0).toFixed(2),
+      'Current (A)':      Number(d.current||0).toFixed(2),
+      'Power (W)':        Number(d.power||0).toFixed(2),
+      'Flow Rate (L/m)':  Number(d.flowRate||0).toFixed(2),
+      'Energy (kWh)':     Number(d.energyKwh||0).toFixed(4),
+      'Peak Power (W)':   Number(d.peakPowerW||0).toFixed(2),
+      'Pump State':       d.pumpState ? 'ON' : 'OFF',
+      'AI Samples':       d.aiSamples||0,
+      'Block #':          d.blockCount||0,
+    }));
+    const ws1 = XLSX.utils.json_to_sheet(rawData);
+    ws1['!cols'] = Object.keys(rawData[0]).map(() => ({ wch:18 }));
+    XLSX.utils.book_append_sheet(wb, ws1, 'Raw Data');
+
+    const byDay = {};
+    rows.forEach(d => {
+      const day = new Date(getRecordTimestamp(d, d.key)).toLocaleDateString();
+      if (!byDay[day]) byDay[day] = { temp:[],hum:[],soil:[],power:[],energy:[],pump_on:0,count:0 };
+      byDay[day].temp.push(d.temperature||0);
+      byDay[day].hum.push(d.humidity||0);
+      byDay[day].soil.push(d.moisture||0);
+      byDay[day].power.push(d.power||0);
+      byDay[day].energy.push(d.energyKwh||0);
+      if (d.pumpState) byDay[day].pump_on++;
+      byDay[day].count++;
+    });
+    const avg = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
+    const dailySummary = Object.entries(byDay).map(([day, d]) => ({
+      'Date':              day,
+      'Avg Temp (°C)':     avg(d.temp).toFixed(1),
+      'Avg Humidity (%)':  avg(d.hum).toFixed(1),
+      'Avg Soil (%)':      avg(d.soil).toFixed(1),
+      'Avg Power (W)':     avg(d.power).toFixed(2),
+      'Peak Power (W)':    Math.max(...d.power).toFixed(2),
+      'Total Energy (kWh)':(Math.max(...d.energy)).toFixed(4),
+      'Pump ON Readings':  d.pump_on,
+      'Total Readings':    d.count,
+      'Pump ON %':         ((d.pump_on/d.count)*100).toFixed(1),
+    }));
+    const ws2 = XLSX.utils.json_to_sheet(dailySummary);
+    ws2['!cols'] = Object.keys(dailySummary[0]||{}).map(()=>({wch:20}));
+    XLSX.utils.book_append_sheet(wb, ws2, 'Daily Summary');
+
+    const allPower  = rows.map(d=>d.power||0).filter(v=>v>0);
+    const allEnergy = rows.map(d=>d.energyKwh||0);
+    const analytics = [
+      { Metric:'Total Records',    Value:rows.length,                                       Unit:'samples' },
+      { Metric:'Period Start',     Value:new Date(startMs).toLocaleString(),                Unit:'' },
+      { Metric:'Period End',       Value:new Date(endMs).toLocaleString(),                  Unit:'' },
+      { Metric:'Avg Power',        Value:avg(allPower).toFixed(2),                          Unit:'W' },
+      { Metric:'Peak Power',       Value:allPower.length?Math.max(...allPower).toFixed(2):'0', Unit:'W' },
+      { Metric:'Min Power',        Value:allPower.length?Math.min(...allPower).toFixed(2):'0', Unit:'W' },
+      { Metric:'Max Energy (kWh)', Value:allEnergy.length?Math.max(...allEnergy).toFixed(4):'0', Unit:'kWh' },
+      { Metric:'Device ID',        Value:currentDevice,                                     Unit:'' },
+    ];
+    const ws3 = XLSX.utils.json_to_sheet(analytics);
+    ws3['!cols'] = [{wch:26},{wch:22},{wch:12}];
+    XLSX.utils.book_append_sheet(wb, ws3, 'Power Analytics');
+
+    const avgW2 = avg(allPower);
+    const projData = [
+      { Period:'Hourly (1h)',   Energy_Wh:(avgW2).toFixed(1),            kWh:(avgW2/1000).toFixed(4),       Cost_NGN:((avgW2/1000)*225).toFixed(2),       CO2_g:(avgW2/1000*233).toFixed(2) },
+      { Period:'Daily (24h)',   Energy_Wh:(avgW2*24).toFixed(1),         kWh:(avgW2*24/1000).toFixed(3),    Cost_NGN:((avgW2*24/1000)*225).toFixed(2),    CO2_g:(avgW2*24/1000*233).toFixed(2) },
+      { Period:'Monthly (30d)',  Energy_Wh:(avgW2*24*30).toFixed(0),     kWh:(avgW2*24*30/1000).toFixed(2), Cost_NGN:((avgW2*24*30/1000)*225).toFixed(2), CO2_g:(avgW2*24*30/1000*233).toFixed(1) },
+      { Period:'Yearly (365d)', Energy_Wh:(avgW2*24*365).toFixed(0),     kWh:(avgW2*24*365/1000).toFixed(2),Cost_NGN:((avgW2*24*365/1000)*225).toFixed(2),CO2_g:(avgW2*24*365/1000*233).toFixed(1) },
+      { Period:'5-Year',        Energy_Wh:(avgW2*24*365*5).toFixed(0),   kWh:(avgW2*24*365*5/1000).toFixed(2),Cost_NGN:((avgW2*24*365*5/1000)*225).toFixed(2),CO2_g:(avgW2*24*365*5/1000*233).toFixed(1) },
+    ];
+    const ws4 = XLSX.utils.json_to_sheet(projData);
+    ws4['!cols'] = [{wch:18},{wch:16},{wch:14},{wch:14},{wch:14}];
+    XLSX.utils.book_append_sheet(wb, ws4, 'Energy Projections');
+
+    const label = period === 'custom'
+      ? `${document.getElementById('exportFrom').value}_to_${document.getElementById('exportTo').value}`
+      : period;
+    XLSX.writeFile(wb, `Spunvertek_${currentDevice}_${label}_${new Date().toISOString().split('T')[0]}.xlsx`);
+    progress.textContent = `✅ Exported ${rows.length} records across 4 sheets.`;
+    setTimeout(() => progress.textContent = '', 5000);
+  } catch(e) {
+    progress.textContent = `❌ Export failed: ${e.message}`;
+    console.error(e);
+  }
+}
+
+// ─────────────────────────────────────────────
+// CHARTS
+// ─────────────────────────────────────────────
+const chartDefs = {
+  chartEnv:    { labels:[], datasets:[
+    { label:'Temp (°C)',    data:[], borderColor:'#f87171', backgroundColor:'rgba(248,113,113,0.1)', tension:0.4 },
+    { label:'Humidity (%)',data:[], borderColor:'#60a5fa', backgroundColor:'rgba(96,165,250,0.1)',  tension:0.4 }
+  ]},
+  chartSolar:  { labels:[], datasets:[
+    { label:'Voltage (V)', data:[], borderColor:'#fbbf24', backgroundColor:'rgba(251,191,36,0.1)',  tension:0.4 },
+    { label:'Current (A)', data:[], borderColor:'#a78bfa', backgroundColor:'rgba(167,139,250,0.1)', tension:0.4 },
+    { label:'Power (W)',   data:[], borderColor:'#00e5b0', backgroundColor:'rgba(0,229,176,0.1)',   tension:0.4 },
+  ]},
+  chartSoil:   { labels:[], datasets:[
+    { label:'Soil (%)',    data:[], borderColor:'#4ade80', backgroundColor:'rgba(74,222,128,0.1)',  tension:0.4 },
+    { label:'Flow (L/m)', data:[], borderColor:'#38bdf8', backgroundColor:'rgba(56,189,248,0.1)',  tension:0.4 }
+  ]},
+  chartEnergy: { labels:[], datasets:[
+    { label:'Energy (Wh)',data:[], borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,0.1)',  tension:0.4, fill:true }
+  ]},
+};
+
+function initCharts() {
+  Chart.defaults.color = '#64748b';
+  Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
+  Object.entries(chartDefs).forEach(([id, cfg]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (charts[id]) charts[id].destroy();
+    charts[id] = new Chart(el, {
+      type: 'line', data: cfg,
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: { duration: 400 },
+        plugins: { legend: { position:'top', labels: { font:{ family:'JetBrains Mono', size:10 }, boxWidth:10 } } },
+        scales: {
+          x: { grid:{ color:'rgba(255,255,255,0.04)' }, ticks:{ font:{ family:'JetBrains Mono', size:9 }, maxTicksLimit:8 } },
+          y: { grid:{ color:'rgba(255,255,255,0.04)' }, ticks:{ font:{ family:'JetBrains Mono', size:9 } } }
+        }
+      }
+    });
+  });
+}
+
+function pushChartData(chartId, values, label) {
+  const chart = charts[chartId];
+  if (!chart) return;
+  chart.data.labels.push(label);
+  values.forEach((v, i) => { if (chart.data.datasets[i]) chart.data.datasets[i].data.push(v); });
+  if (chart.data.labels.length > 25) {
+    chart.data.labels.shift();
+    chart.data.datasets.forEach(ds => ds.data.shift());
+  }
+  chart.update('none');
+}
+
+// ─────────────────────────────────────────────
+// TABS
+// ─────────────────────────────────────────────
+function switchTab(idx, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  const pane = document.getElementById('pane' + idx);
+  if (pane) pane.classList.add('active');
+  if (idx === 0) setTimeout(initCharts, 50);
+}
+
+// ─────────────────────────────────────────────
+// 3D SCENE (Three.js)
+// ─────────────────────────────────────────────
+const sensorDefs3D = [
+  { key:'temperature', max:60,   color:0xf87171 },
+  { key:'humidity',    max:100,  color:0x60a5fa },
+  { key:'moisture',    max:100,  color:0x4ade80 },
+  { key:'voltage',     max:30,   color:0xfbbf24 },
+  { key:'current',     max:10,   color:0xe879f9 },
+  { key:'power',       max:2200, color:0x00e5b0 },
+  { key:'flowRate',    max:1100, color:0x38bdf8 },
+];
+
+function init3DScene() {
+  const container = document.getElementById('sensor3dContainer');
+  if (!container) return;
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  if (renderer3d) { container.removeChild(renderer3d.domElement); renderer3d.dispose(); }
+  pods3d = [];
+  scene3d = new THREE.Scene();
+  const w = container.clientWidth, h = container.clientHeight;
+  camera3d = new THREE.PerspectiveCamera(55, w/h, 0.1, 200);
+  camera3d.position.set(0, 8, 14);
+  camera3d.lookAt(0, 0, 0);
+  renderer3d = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+  renderer3d.setSize(w, h);
+  renderer3d.setClearColor(0x040810, 1);
+  renderer3d.shadowMap.enabled = true;
+  container.appendChild(renderer3d.domElement);
+  scene3d.add(new THREE.AmbientLight(0x112233, 2));
+  const pt = new THREE.PointLight(0x00e5b0, 3, 30); pt.position.set(0,8,0); scene3d.add(pt);
+  const pt2 = new THREE.PointLight(0x3b82f6, 2, 25); pt2.position.set(-8,2,5); scene3d.add(pt2);
+  const starsGeo = new THREE.BufferGeometry();
+  const sp = [];
+  for (let i=0;i<800;i++) sp.push((Math.random()-.5)*80,(Math.random()-.5)*80,(Math.random()-.5)*80);
+  starsGeo.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3));
+  scene3d.add(new THREE.Points(starsGeo, new THREE.PointsMaterial({ color:0xaaaaff, size:0.08, transparent:true, opacity:0.6 })));
+  const gridH = new THREE.GridHelper(20, 20, 0x1a2d45, 0x0b1220); gridH.position.y = -0.05; scene3d.add(gridH);
+  const centerOrb = new THREE.Mesh(
+    new THREE.SphereGeometry(0.5, 32, 32),
+    new THREE.MeshPhongMaterial({ color:0x00e5b0, emissive:0x00e5b0, emissiveIntensity:0.6, transparent:true, opacity:0.8 })
+  ); centerOrb.position.set(0, 0.5, 0); scene3d.add(centerOrb);
+  const R = 5;
+  sensorDefs3D.forEach((def, i) => {
+    const angle = (i / sensorDefs3D.length) * Math.PI * 2;
+    const x = Math.cos(angle) * R, z = Math.sin(angle) * R;
+    const group = new THREE.Group(); group.position.set(x, 0, z);
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.12, 32), new THREE.MeshPhongMaterial({ color:0x0b1220, emissive:0x050a12, shininess:60 }));
+    base.position.y = 0.06; group.add(base);
+    const fillMat = new THREE.MeshPhongMaterial({ color:def.color, emissive:def.color, emissiveIntensity:0.7, transparent:true, opacity:0.9 });
+    const fill = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.01, 24), fillMat);
+    fill.position.y = 0.13; group.add(fill);
+    const ringMat = new THREE.MeshPhongMaterial({ color:def.color, emissive:def.color, emissiveIntensity:0.5 });
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.72, 0.04, 8, 48), ringMat);
+    ring.rotation.x = Math.PI/2; ring.position.y = 0.06; group.add(ring);
+    const linePts = [new THREE.Vector3(-x, 0.06, -z), new THREE.Vector3(0, 0.06, 0)];
+    scene3d.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(linePts), new THREE.LineBasicMaterial({ color:def.color, transparent:true, opacity:0.15 })));
+    scene3d.add(group);
+    pods3d.push({ group, fill, fillMat, ring, ringMat, def });
+  });
+  animate3D();
+}
+
+function update3DPods(data) {
+  pods3d.forEach(pod => {
+    const val = data[pod.def.key] || 0;
+    const pct = Math.min(1, Math.max(0, val / pod.def.max));
+    const h   = Math.max(0.02, pct * 3.0);
+    pod.fill.scale.y = h / 0.01;
+    pod.fill.position.y = 0.13 + h/2;
+    pod.fillMat.emissiveIntensity = 0.3 + pct * 0.8;
+    pod.ringMat.emissiveIntensity = 0.3 + pct * 0.7;
+  });
+}
+
+function animate3D() {
+  animFrameId = requestAnimationFrame(animate3D);
+  const t = Date.now() * 0.0003;
+  scene3d.rotation.y = t * 0.3;
+  pods3d.forEach((pod, i) => { pod.group.position.y = Math.sin(t*2 + i*0.9) * 0.08; });
+  renderer3d.render(scene3d, camera3d);
+}
+
+// ─────────────────────────────────────────────
+// RESIZE
+// ─────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  if (!renderer3d) return;
+  const c = document.getElementById('sensor3dContainer');
+  if (!c) return;
+  camera3d.aspect = c.clientWidth / c.clientHeight;
+  camera3d.updateProjectionMatrix();
+  renderer3d.setSize(c.clientWidth, c.clientHeight);
+});
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+window.addEventListener('load', () => {
+  setInterval(() => {
+    if (!currentDevice) return;
+    const ms = Date.now() - sessionStartMs;
+    const h  = Math.floor(ms/3600000).toString().padStart(2,'0');
+    const m  = Math.floor((ms%3600000)/60000).toString().padStart(2,'0');
+    const s  = Math.floor((ms%60000)/1000).toString().padStart(2,'0');
+    const el = document.getElementById('pa-uptime');
+    if (el) el.textContent = `${h}:${m}:${s}`;
+  }, 1000);
+});
+</script>
+
+
+</body></html>
