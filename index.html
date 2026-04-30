@@ -1,25 +1,25 @@
 <!DOCTYPE html>
-<!-- saved from url=(0077)file:///C:/Users/HP%20OMEN/Downloads/spunvertek-frontend-dashboard%20(1).html -->
-<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
+<html lang="en">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SPUNVERTEK — Smart Irrigation Dashboard</title>
-<link rel="preconnect" href="https://fonts.googleapis.com/">
-<link href="./SPUNVERTEK — Smart Irrigation Dashboard_files/css2" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700&display=swap" rel="stylesheet">
 
 <!-- Firebase -->
-<script src="./SPUNVERTEK — Smart Irrigation Dashboard_files/firebase-app-compat.js.download"></script>
-<script src="./SPUNVERTEK — Smart Irrigation Dashboard_files/firebase-auth-compat.js.download"></script>
-<script src="./SPUNVERTEK — Smart Irrigation Dashboard_files/firebase-database-compat.js.download"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
 <!-- Three.js -->
-<script src="./SPUNVERTEK — Smart Irrigation Dashboard_files/three.min.js.download"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
 <!-- Chart.js -->
-<script src="./SPUNVERTEK — Smart Irrigation Dashboard_files/chart.umd.min.js.download"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <!-- SheetJS -->
-<script src="./SPUNVERTEK — Smart Irrigation Dashboard_files/xlsx.full.min.js.download"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 
 <style>
 :root {
@@ -335,18 +335,18 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Syne',
 <body>
 
 <!-- ═══ CONNECTING OVERLAY ═══ -->
-<div id="connectingOverlay" style="display: none;">
+<div id="connectingOverlay">
   <div class="conn-logo">SPUNVERTEK</div>
   <div class="conn-sub">SMART IRRIGATION OS · v2.2</div>
   <div class="conn-status">
     <span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span>
-    <span id="connStatusText">Authenticating…</span>
+    <span id="connStatusText">Connecting to Firebase…</span>
   </div>
   <div class="conn-error" id="connError" style="display:none"></div>
 </div>
 
 <!-- ═══ MAIN APP ═══ -->
-<div id="appContainer" class="visible">
+<div id="appContainer">
 
   <!-- TOP BAR -->
   <div id="topBar">
@@ -363,7 +363,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Syne',
       <span class="device-selector-label">Device</span>
       <select id="deviceDropdown" onchange="onDropdownChange(this.value)">
         <option value="">— Select —</option>
-      <option value="Pump1" data-meta="{&quot;apiKey&quot;:&quot;C3A3VWLHA2VGQBN3&quot;,&quot;country&quot;:&quot;Nigeria&quot;,&quot;createdAt&quot;:1777493932568,&quot;fbPath&quot;:&quot;/Pump1&quot;,&quot;firmware&quot;:&quot;v2.2&quot;,&quot;ip&quot;:&quot;&quot;,&quot;latitude&quot;:8.906547,&quot;lga&quot;:&quot;Sheshi-Bikun&quot;,&quot;longitude&quot;:6.115007,&quot;notes&quot;:&quot;Shehi-Bikun&quot;,&quot;pumpState&quot;:false,&quot;state&quot;:&quot;Niger&quot;,&quot;status&quot;:&quot;offline&quot;}">⚫ Pump1</option><option value="Pump2" data-meta="{&quot;apiKey&quot;:&quot;M0ZVEAUQ5HB0K4RC&quot;,&quot;country&quot;:&quot;Nigeria&quot;,&quot;createdAt&quot;:1777293158151,&quot;fbPath&quot;:&quot;/Pump2&quot;,&quot;firmware&quot;:&quot;v2.2&quot;,&quot;ip&quot;:&quot;&quot;,&quot;latitude&quot;:8.916715,&quot;lga&quot;:&quot;Lavun&quot;,&quot;longitude&quot;:6.087282,&quot;notes&quot;:&quot;Sheshi-Bikun&quot;,&quot;pumpState&quot;:true,&quot;state&quot;:&quot;Niger State&quot;,&quot;status&quot;:&quot;offline&quot;}">⚫ Pump2</option><option value="Pump3" data-meta="{&quot;apiKey&quot;:&quot;K9DVLX6HCQDE1XGO&quot;,&quot;country&quot;:&quot;Nigeria&quot;,&quot;createdAt&quot;:1777293492742,&quot;fbPath&quot;:&quot;/Pump3&quot;,&quot;firmware&quot;:&quot;v2.2&quot;,&quot;ip&quot;:&quot;&quot;,&quot;latitude&quot;:8.906508,&quot;lga&quot;:&quot;Lavun&quot;,&quot;longitude&quot;:6.115099,&quot;notes&quot;:&quot;Sheshi-Bikun&quot;,&quot;pumpState&quot;:true,&quot;state&quot;:&quot;Niger State&quot;,&quot;status&quot;:&quot;offline&quot;}">⚫ Pump3</option><option value="Pump4" data-meta="{&quot;apiKey&quot;:&quot;GRG5L1A3DDMHWG0J&quot;,&quot;country&quot;:&quot;Nigeria&quot;,&quot;createdAt&quot;:1777293704201,&quot;fbPath&quot;:&quot;/Pump4&quot;,&quot;firmware&quot;:&quot;v2.2&quot;,&quot;ip&quot;:&quot;&quot;,&quot;latitude&quot;:8.906508,&quot;lga&quot;:&quot;Lavun&quot;,&quot;longitude&quot;:6.115099,&quot;notes&quot;:&quot;Sheshi-Bikun&quot;,&quot;pumpState&quot;:true,&quot;state&quot;:&quot;Niger State&quot;,&quot;status&quot;:&quot;offline&quot;}">⚫ Pump4</option><option value="Pump5" data-meta="{&quot;apiKey&quot;:&quot;I7J7664DGX0YD3AQ&quot;,&quot;country&quot;:&quot;Nigeria&quot;,&quot;createdAt&quot;:1777218424341,&quot;fbPath&quot;:&quot;/Pump5&quot;,&quot;firmware&quot;:&quot;v2.2&quot;,&quot;ip&quot;:&quot;&quot;,&quot;latitude&quot;:8.906526,&quot;lga&quot;:&quot;Sheshi-Bikun&quot;,&quot;longitude&quot;:6.115006,&quot;notes&quot;:&quot;Sheshi-Bikun&quot;,&quot;pumpState&quot;:true,&quot;state&quot;:&quot;Lavun&quot;,&quot;status&quot;:&quot;offline&quot;}">⚫ Pump5</option><option value="Pump6" data-meta="{&quot;apiKey&quot;:&quot;FVNLAN3VPSLSDYXF&quot;,&quot;country&quot;:&quot;Nigeria&quot;,&quot;createdAt&quot;:1777293918115,&quot;fbPath&quot;:&quot;/Pump6&quot;,&quot;firmware&quot;:&quot;v2.2&quot;,&quot;ip&quot;:&quot;&quot;,&quot;latitude&quot;:8.906489,&quot;lga&quot;:&quot;Lavun&quot;,&quot;longitude&quot;:6.115082,&quot;notes&quot;:&quot;Sheshi-Bikun&quot;,&quot;pumpState&quot;:true,&quot;state&quot;:&quot;Niger State&quot;,&quot;status&quot;:&quot;offline&quot;}">⚫ Pump6</option><option value="Pump7" data-meta="{&quot;apiKey&quot;:&quot;5WDYCN74DCBBYXKO&quot;,&quot;country&quot;:&quot;Nigeria&quot;,&quot;createdAt&quot;:1777294137185,&quot;fbPath&quot;:&quot;/Pump7&quot;,&quot;firmware&quot;:&quot;v2.2&quot;,&quot;ip&quot;:&quot;&quot;,&quot;latitude&quot;:8.906489,&quot;lga&quot;:&quot;Lavun&quot;,&quot;longitude&quot;:6.115082,&quot;notes&quot;:&quot;Sheshi-Bikun&quot;,&quot;pumpState&quot;:true,&quot;state&quot;:&quot;Niger State&quot;,&quot;status&quot;:&quot;offline&quot;}">⚫ Pump7</option></select>
+      </select>
     </div>
 
     <!-- Online / Offline Badge -->
@@ -375,35 +375,36 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Syne',
     <!-- Pump Status (read-only indicator) -->
     <div class="pump-status-wrap">
       <span class="pump-label">PUMP:</span>
-      <div id="pumpIndicator" class="pump-state-indicator on">
+      <div id="pumpIndicator" class="pump-state-indicator off">
         <span id="pumpDot" class="blink">●</span>
-        <span id="pumpStateText">ON</span>
+        <span id="pumpStateText">OFF</span>
       </div>
     </div>
 
   </div>
 
   <!-- LOCATION STRIP — populated from Firebase /devices/{id} -->
-  <div id="locationStrip" class="visible">
+  <div id="locationStrip">
     <div class="fe-loc-item">
       <span>🌍</span>
       <span class="fe-loc-label">Country</span>
-      <span class="fe-loc-value" id="fe-loc-country">Nigeria</span>
+      <span class="fe-loc-value" id="fe-loc-country">—</span>
     </div>
     <div class="fe-loc-item">
       <span>🏛️</span>
       <span class="fe-loc-label">State</span>
-      <span class="fe-loc-value" id="fe-loc-state">Niger State</span>
+      <span class="fe-loc-value" id="fe-loc-state">—</span>
     </div>
     <div class="fe-loc-item">
       <span>🏘️</span>
       <span class="fe-loc-label">LGA</span>
-      <span class="fe-loc-value" id="fe-loc-lga">Lavun</span>
+      <span class="fe-loc-value" id="fe-loc-lga">—</span>
     </div>
     <div class="fe-loc-item" style="margin-left:auto;border-right:none;padding-right:0">
-      <a id="feLocMapLink" href="https://www.google.com/maps?q=8.916715,6.087282&amp;z=15" target="_blank" rel="noopener noreferrer" title="Open device location in Google Maps" style="opacity: 1; pointer-events: auto;">
+      <a id="feLocMapLink" href="#" target="_blank" rel="noopener noreferrer"
+         title="Open device location in Google Maps">
         <span>📍</span>
-        <span id="feLocCoords">8.91671, 6.08728</span>
+        <span id="feLocCoords">—</span>
         <span style="opacity:0.55;font-size:0.9em">↗ Maps</span>
       </a>
     </div>
@@ -422,43 +423,43 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Syne',
 
     <!-- ─── TAB 0: OVERVIEW ─── -->
     <div class="tab-pane active" id="pane0">
-      <div id="noDeviceMsg" class="no-device" style="display: none;">
+      <div id="noDeviceMsg" class="no-device">
         <div class="no-device-icon">📡</div>
         <div class="no-device-text">Select a device from the dropdown above<br>to begin monitoring</div>
       </div>
-      <div id="deviceContent" style="display: block;">
+      <div id="deviceContent" style="display:none">
         <!-- 3D Sensor Visualization -->
         <div id="sensor3dContainer">
-          <div class="scene-overlay">3D SENSOR VISUALIZATION · <span id="scene3dDevice">Pump2</span></div>
-        <canvas width="1482" height="298" style="display: block; width: 1482px; height: 298px;"></canvas></div>
+          <div class="scene-overlay">3D SENSOR VISUALIZATION · <span id="scene3dDevice">—</span></div>
+        </div>
         <!-- Sensor Cards -->
         <div class="sensor-grid" id="sensorGrid">
-          <div class="sensor-card" style="--c1:#f87171"><span class="sensor-icon">🌡️</span><div class="sensor-label">Temperature</div><div class="sensor-value" id="sv-temp">43.0</div><div class="sensor-unit">°C</div><div class="sensor-bar"><div class="sensor-bar-fill" id="sb-temp" style="width: 71.6667%;"></div></div></div>
-          <div class="sensor-card" style="--c1:#60a5fa"><span class="sensor-icon">💧</span><div class="sensor-label">Humidity</div><div class="sensor-value" id="sv-hum">31.7</div><div class="sensor-unit">%</div><div class="sensor-bar"><div class="sensor-bar-fill" id="sb-hum" style="width: 31.7%;"></div></div></div>
-          <div class="sensor-card" style="--c1:#4ade80"><span class="sensor-icon">🌱</span><div class="sensor-label">Soil Moisture</div><div class="sensor-value" id="sv-soil">100</div><div class="sensor-unit">%</div><div class="sensor-bar"><div class="sensor-bar-fill" id="sb-soil" style="width: 100%;"></div></div></div>
-          <div class="sensor-card" style="--c1:#fbbf24"><span class="sensor-icon">⚡</span><div class="sensor-label">Solar Voltage</div><div class="sensor-value" id="sv-volt">241.42</div><div class="sensor-unit">V</div><div class="sensor-bar"><div class="sensor-bar-fill" id="sb-volt" style="width: 100%;"></div></div></div>
-          <div class="sensor-card" style="--c1:#e879f9"><span class="sensor-icon">🔌</span><div class="sensor-label">Current</div><div class="sensor-value" id="sv-curr">0.00</div><div class="sensor-unit">A</div><div class="sensor-bar"><div class="sensor-bar-fill" id="sb-curr" style="width:0%"></div></div></div>
-          <div class="sensor-card" style="--c1:#00e5b0"><span class="sensor-icon">⚙️</span><div class="sensor-label">Solar Power</div><div class="sensor-value" id="sv-power">0.00</div><div class="sensor-unit">W</div><div class="sensor-bar"><div class="sensor-bar-fill" id="sb-power" style="width:0%"></div></div></div>
-          <div class="sensor-card" style="--c1:#38bdf8"><span class="sensor-icon">🌊</span><div class="sensor-label">Flow Rate</div><div class="sensor-value" id="sv-flow">0.00</div><div class="sensor-unit">L/min</div><div class="sensor-bar"><div class="sensor-bar-fill" id="sb-flow" style="width:0%"></div></div></div>
-          <div class="sensor-card" style="--c1:#fb923c"><span class="sensor-icon">🔗</span><div class="sensor-label">Blockchain</div><div class="sensor-value" id="sv-block" style="font-size:1em">894fe00b01…</div><div class="sensor-unit">BLOCK #<span id="sv-blockn">8</span></div><div class="sensor-bar"><div class="sensor-bar-fill" id="sb-block" style="width: 44.4142%;"></div></div></div>
+          <div class="sensor-card" style="--c1:#f87171"><span class="sensor-icon">🌡️</span><div class="sensor-label">Temperature</div><div class="sensor-value" id="sv-temp">—</div><div class="sensor-unit">°C</div><div class="sensor-bar"><div class="sensor-bar-fill" id="sb-temp" style="width:0%"></div></div></div>
+          <div class="sensor-card" style="--c1:#60a5fa"><span class="sensor-icon">💧</span><div class="sensor-label">Humidity</div><div class="sensor-value" id="sv-hum">—</div><div class="sensor-unit">%</div><div class="sensor-bar"><div class="sensor-bar-fill" id="sb-hum" style="width:0%"></div></div></div>
+          <div class="sensor-card" style="--c1:#4ade80"><span class="sensor-icon">🌱</span><div class="sensor-label">Soil Moisture</div><div class="sensor-value" id="sv-soil">—</div><div class="sensor-unit">%</div><div class="sensor-bar"><div class="sensor-bar-fill" id="sb-soil" style="width:0%"></div></div></div>
+          <div class="sensor-card" style="--c1:#fbbf24"><span class="sensor-icon">⚡</span><div class="sensor-label">Solar Voltage</div><div class="sensor-value" id="sv-volt">—</div><div class="sensor-unit">V</div><div class="sensor-bar"><div class="sensor-bar-fill" id="sb-volt" style="width:0%"></div></div></div>
+          <div class="sensor-card" style="--c1:#e879f9"><span class="sensor-icon">🔌</span><div class="sensor-label">Current</div><div class="sensor-value" id="sv-curr">—</div><div class="sensor-unit">A</div><div class="sensor-bar"><div class="sensor-bar-fill" id="sb-curr" style="width:0%"></div></div></div>
+          <div class="sensor-card" style="--c1:#00e5b0"><span class="sensor-icon">⚙️</span><div class="sensor-label">Solar Power</div><div class="sensor-value" id="sv-power">—</div><div class="sensor-unit">W</div><div class="sensor-bar"><div class="sensor-bar-fill" id="sb-power" style="width:0%"></div></div></div>
+          <div class="sensor-card" style="--c1:#38bdf8"><span class="sensor-icon">🌊</span><div class="sensor-label">Flow Rate</div><div class="sensor-value" id="sv-flow">—</div><div class="sensor-unit">L/min</div><div class="sensor-bar"><div class="sensor-bar-fill" id="sb-flow" style="width:0%"></div></div></div>
+          <div class="sensor-card" style="--c1:#fb923c"><span class="sensor-icon">🔗</span><div class="sensor-label">Blockchain</div><div class="sensor-value" id="sv-block" style="font-size:1em">—</div><div class="sensor-unit">BLOCK #<span id="sv-blockn">0</span></div><div class="sensor-bar"><div class="sensor-bar-fill" id="sb-block" style="width:50%"></div></div></div>
         </div>
         <!-- Charts -->
         <div class="chart-grid">
           <div class="card">
             <div class="card-title">🌡️ Temperature &amp; Humidity</div>
-            <div class="chart-wrap"><canvas id="chartEnv" style="box-sizing: border-box; display: block; height: 200px; width: 692px;" width="865" height="250"></canvas></div>
+            <div class="chart-wrap"><canvas id="chartEnv"></canvas></div>
           </div>
           <div class="card">
             <div class="card-title">⚡ Solar Performance</div>
-            <div class="chart-wrap"><canvas id="chartSolar" style="box-sizing: border-box; display: block; height: 200px; width: 692px;" width="865" height="250"></canvas></div>
+            <div class="chart-wrap"><canvas id="chartSolar"></canvas></div>
           </div>
           <div class="card">
             <div class="card-title">🌱 Soil &amp; Flow</div>
-            <div class="chart-wrap"><canvas id="chartSoil" style="box-sizing: border-box; display: block; height: 200px; width: 692px;" width="865" height="250"></canvas></div>
+            <div class="chart-wrap"><canvas id="chartSoil"></canvas></div>
           </div>
           <div class="card">
             <div class="card-title">📊 Energy Accumulation (kWh)</div>
-            <div class="chart-wrap"><canvas id="chartEnergy" style="box-sizing: border-box; display: block; height: 200px; width: 692px;" width="865" height="250"></canvas></div>
+            <div class="chart-wrap"><canvas id="chartEnergy"></canvas></div>
           </div>
         </div>
       </div>
@@ -471,32 +472,32 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Syne',
         <div class="analytics-grid">
           <div class="analytics-card">
             <div class="analytics-card-label">Current Power</div>
-            <div class="analytics-card-value val-accent" id="pa-current">0.00</div>
+            <div class="analytics-card-value val-accent" id="pa-current">—</div>
             <div class="analytics-card-unit">Watts (W)</div>
           </div>
           <div class="analytics-card">
             <div class="analytics-card-label">Session Average</div>
-            <div class="analytics-card-value val-blue" id="pa-avg">0.00</div>
+            <div class="analytics-card-value val-blue" id="pa-avg">—</div>
             <div class="analytics-card-unit">W (rolling avg)</div>
           </div>
           <div class="analytics-card">
             <div class="analytics-card-label">Total Energy</div>
-            <div class="analytics-card-value val-green" id="pa-energy">0.000</div>
+            <div class="analytics-card-value val-green" id="pa-energy">—</div>
             <div class="analytics-card-unit">Wh (session)</div>
           </div>
           <div class="analytics-card">
             <div class="analytics-card-label">Peak Power</div>
-            <div class="analytics-card-value val-amber" id="pa-peak">0.00</div>
+            <div class="analytics-card-value val-amber" id="pa-peak">—</div>
             <div class="analytics-card-unit">Watts (W)</div>
           </div>
           <div class="analytics-card">
             <div class="analytics-card-label">Session Uptime</div>
-            <div class="analytics-card-value" style="font-size:1.2em" id="pa-uptime">35:12:02</div>
+            <div class="analytics-card-value" style="font-size:1.2em" id="pa-uptime">—</div>
             <div class="analytics-card-unit">hh:mm:ss</div>
           </div>
           <div class="analytics-card">
             <div class="analytics-card-label">Samples Logged</div>
-            <div class="analytics-card-value val-green" id="pa-samples">258</div>
+            <div class="analytics-card-value val-green" id="pa-samples">—</div>
             <div class="analytics-card-unit">AI data points</div>
           </div>
         </div>
@@ -510,21 +511,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Syne',
             </tr>
           </thead>
           <tbody id="powerTableBody">
-            <tr>
-      <td class="val-muted">10:33:12 PM</td>
-      <td class="val-amber">241.42</td>
-      <td class="val-blue">0.00</td>
-      <td class="val-accent">0.00</td>
-      <td class="val-green">0.0000</td>
-      <td class="val-amber">0.00</td>
-      <td><span class="tag tag-green">ON</span></td></tr><tr>
-      <td class="val-muted">9:27:03 PM</td>
-      <td class="val-amber">181.80</td>
-      <td class="val-blue">0.00</td>
-      <td class="val-accent">0.00</td>
-      <td class="val-green">0.0000</td>
-      <td class="val-amber">0.00</td>
-      <td><span class="tag tag-green">ON</span></td></tr><tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px;font-size:0.85em">Select a device to view data…</td></tr>
+            <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px;font-size:0.85em">Select a device to view data…</td></tr>
           </tbody>
         </table>
       </div>
@@ -545,39 +532,39 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Syne',
           <tbody>
             <tr>
               <td class="val-accent">Hourly</td>
-              <td id="proj-1h">0.0</td><td>Wh</td>
-              <td id="proj-cost-1h">₦0.00</td><td id="proj-co2-1h">0.0 g</td>
+              <td id="proj-1h">—</td><td>Wh</td>
+              <td id="proj-cost-1h">—</td><td id="proj-co2-1h">—</td>
               <td><span class="tag tag-blue">LIVE</span></td>
             </tr>
             <tr>
               <td class="val-blue">Daily (24h)</td>
-              <td id="proj-24h">0.0</td><td>Wh</td>
-              <td id="proj-cost-24h">₦0.00</td><td id="proj-co2-24h">0.0 g</td>
+              <td id="proj-24h">—</td><td>Wh</td>
+              <td id="proj-cost-24h">—</td><td id="proj-co2-24h">—</td>
               <td><span class="tag tag-blue">PROJECTED</span></td>
             </tr>
             <tr>
               <td class="val-green">Monthly (30d)</td>
-              <td id="proj-30d">0.000</td><td>kWh</td>
-              <td id="proj-cost-30d">₦0.00</td><td id="proj-co2-30d">0.0 g</td>
+              <td id="proj-30d">—</td><td>kWh</td>
+              <td id="proj-cost-30d">—</td><td id="proj-co2-30d">—</td>
               <td><span class="tag tag-green">ESTIMATED</span></td>
             </tr>
             <tr>
               <td class="val-amber">Yearly (365d)</td>
-              <td id="proj-365d">0.00</td><td>kWh</td>
-              <td id="proj-cost-365d">₦0.00</td><td id="proj-co2-365d">0.0 g</td>
+              <td id="proj-365d">—</td><td>kWh</td>
+              <td id="proj-cost-365d">—</td><td id="proj-co2-365d">—</td>
               <td><span class="tag tag-amber">FORECAST</span></td>
             </tr>
             <tr>
               <td class="val-red">5-Year</td>
-              <td id="proj-5y">0.0000</td><td>MWh</td>
-              <td id="proj-cost-5y">₦0.00</td><td id="proj-co2-5y">0.0 g</td>
+              <td id="proj-5y">—</td><td>MWh</td>
+              <td id="proj-cost-5y">—</td><td id="proj-co2-5y">—</td>
               <td><span class="tag" style="background:rgba(239,68,68,0.15);color:var(--danger)">LONG-TERM</span></td>
             </tr>
           </tbody>
         </table>
         <hr class="section-divider">
         <div class="card-title" style="margin-bottom:12px">📉 Energy Projection Chart</div>
-        <div style="height:240px"><canvas id="chartProjection" height="0" style="display: block; box-sizing: border-box; height: 0px; width: 0px;" width="0"></canvas></div>
+        <div style="height:240px"><canvas id="chartProjection"></canvas></div>
       </div>
     </div>
 
@@ -585,19 +572,19 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Syne',
     <div class="tab-pane" id="pane3">
       <div class="card mb-4">
         <div class="card-title">📊 <span class="card-title-accent">Data Export</span> — Firebase History → Excel</div>
-        <div class="alert alert-info mb-4">All data is downloaded directly from Firebase <code style="font-family:&#39;JetBrains Mono&#39;,monospace">/history</code> node. Large date ranges may take a moment to process.</div>
+        <div class="alert alert-info mb-4">All data is downloaded directly from Firebase <code style="font-family:'JetBrains Mono',monospace">/history</code> node. Large date ranges may take a moment to process.</div>
 
         <div class="export-section">
           <div class="export-section-title">Quick Export</div>
           <div class="export-grid">
-            <button class="export-btn" onclick="exportData(&#39;today&#39;)"><span class="export-icon">📅</span>Today</button>
-            <button class="export-btn" onclick="exportData(&#39;week&#39;)"><span class="export-icon">📆</span>This Week</button>
-            <button class="export-btn" onclick="exportData(&#39;month&#39;)"><span class="export-icon">🗓️</span>This Month</button>
-            <button class="export-btn" onclick="exportData(&#39;3months&#39;)"><span class="export-icon">📋</span>3 Months</button>
-            <button class="export-btn" onclick="exportData(&#39;6months&#39;)"><span class="export-icon">📁</span>6 Months</button>
-            <button class="export-btn" onclick="exportData(&#39;year&#39;)"><span class="export-icon">📊</span>This Year</button>
-            <button class="export-btn" onclick="exportData(&#39;2years&#39;)"><span class="export-icon">🗃️</span>2 Years</button>
-            <button class="export-btn" onclick="exportData(&#39;5years&#39;)"><span class="export-icon">🏦</span>5 Years</button>
+            <button class="export-btn" onclick="exportData('today')"><span class="export-icon">📅</span>Today</button>
+            <button class="export-btn" onclick="exportData('week')"><span class="export-icon">📆</span>This Week</button>
+            <button class="export-btn" onclick="exportData('month')"><span class="export-icon">🗓️</span>This Month</button>
+            <button class="export-btn" onclick="exportData('3months')"><span class="export-icon">📋</span>3 Months</button>
+            <button class="export-btn" onclick="exportData('6months')"><span class="export-icon">📁</span>6 Months</button>
+            <button class="export-btn" onclick="exportData('year')"><span class="export-icon">📊</span>This Year</button>
+            <button class="export-btn" onclick="exportData('2years')"><span class="export-icon">🗃️</span>2 Years</button>
+            <button class="export-btn" onclick="exportData('5years')"><span class="export-icon">🏦</span>5 Years</button>
           </div>
         </div>
 
@@ -605,14 +592,14 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Syne',
           <div class="export-section-title">Custom Date Range</div>
           <div class="export-custom">
             <div>
-              <label style="font-family:&#39;JetBrains Mono&#39;,monospace;font-size:0.72em;color:var(--muted);letter-spacing:1.5px;display:block;margin-bottom:4px">FROM</label>
+              <label style="font-family:'JetBrains Mono',monospace;font-size:0.72em;color:var(--muted);letter-spacing:1.5px;display:block;margin-bottom:4px">FROM</label>
               <input type="date" id="exportFrom">
             </div>
             <div>
-              <label style="font-family:&#39;JetBrains Mono&#39;,monospace;font-size:0.72em;color:var(--muted);letter-spacing:1.5px;display:block;margin-bottom:4px">TO</label>
+              <label style="font-family:'JetBrains Mono',monospace;font-size:0.72em;color:var(--muted);letter-spacing:1.5px;display:block;margin-bottom:4px">TO</label>
               <input type="date" id="exportTo">
             </div>
-            <button class="btn-modal primary" onclick="exportData(&#39;custom&#39;)" style="padding:10px 20px">⬇ Export Custom</button>
+            <button class="btn-modal primary" onclick="exportData('custom')" style="padding:10px 20px">⬇ Export Custom</button>
           </div>
           <div class="export-progress" id="exportProgress"></div>
         </div>
@@ -628,18 +615,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Syne',
             </tr>
           </thead>
           <tbody id="historyTableBody">
-    <tr>
-      <td style="color:var(--muted)">4/29/2026, 5:53:42 PM</td>
-      <td class="val-red">43.1</td>
-      <td class="val-blue">31.5</td>
-      <td class="val-green">100</td>
-      <td class="val-amber">269.41</td>
-      <td class="val-blue">0.00</td>
-      <td class="val-accent">0.00</td>
-      <td class="val-green">0.00</td>
-      <td class="val-accent">0.0000</td>
-      <td><span class="tag tag-green">ON</span></td>
-    </tr></tbody>
+            <tr><td colspan="10" style="text-align:center;color:var(--muted);padding:30px">Select a device to load history…</td></tr>
+          </tbody>
         </table>
       </div>
     </div>
@@ -1427,6 +1404,5 @@ window.addEventListener('load', () => {
   }, 1000);
 });
 </script>
-
-
-</body></html>
+</body>
+</html>
